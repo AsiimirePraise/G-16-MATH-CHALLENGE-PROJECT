@@ -1,23 +1,21 @@
 package server;
 
 import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.*;
 
-
 public class ServerThread {
     private Socket socket;
-    // server thread properties
 
+    // server thread properties
     public ServerThread(Socket socket) {
         this.socket = socket;
         // define constructor for the Server thread
     }
-    
+
     public JSONObject readUserInput(BufferedReader input) throws IOException {
         String clientInput;
         StringBuilder clientIn = new StringBuilder();
@@ -34,20 +32,21 @@ public class ServerThread {
     }
 
     public void start() throws IOException {
-
         System.out.println("Thread started");
-
         try (
                 BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter output = new PrintWriter(socket.getOutputStream(), true)
-                ){
+                PrintWriter output = new PrintWriter(socket.getOutputStream(), true)) {
             // read user input
             JSONObject clientRequest;
             while ((clientRequest = this.readUserInput(input)) != null) {
                 System.out.println(socket.getInetAddress().getHostAddress() + " - - " + clientRequest.toString());
 
+                Controller exec = new Controller(clientRequest);
+
+                String response = exec.run().toString();
+
                 // send content back to client
-                output.println(clientRequest.toString());
+                output.println(response);
             }
 
         } catch (IOException e) {
@@ -56,7 +55,6 @@ public class ServerThread {
         } finally {
             socket.close();
         }
-
         // start a thread for communicating with the client continously
     }
 }
