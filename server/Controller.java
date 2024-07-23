@@ -1,6 +1,6 @@
 package server;
 
-import org.json.JSONObject;
+import org.json.*;
 
 public class Controller {
     JSONObject obj;
@@ -8,9 +8,32 @@ public class Controller {
     public Controller(JSONObject obj) {
         this.obj = obj;
     }
+
     private JSONObject login(JSONObject obj) {
         // logic to log in a user check the student db and then the representatives (!isAuthenticated)
-        return new JSONObject();
+        JSONObject output = new JSONObject();
+
+        if (obj.getBoolean("isAuthenticated")) {
+            output.put("reason", "user is already authenticated");
+            output.put("status", false);
+
+            return output;
+        }
+
+
+        // check the given credentials
+        Object arr = obj.get("tokens");
+        JSONArray tokens = new JSONArray(arr.toString());
+
+        String username = (String) tokens.get(1);
+        String email = (String) tokens.get(2);
+
+        output.put("status", true);
+        output.put("userId", 1);
+        output.put("isStudent", true);
+        output.put("username", username);
+        output.put("email", email);
+        return output;
     }
 
     private JSONObject register(JSONObject obj) {
@@ -23,7 +46,7 @@ public class Controller {
         return new JSONObject();
     }
 
-   private JSONObject viewChallenges(JSONObject obj) {
+    private JSONObject viewChallenges(JSONObject obj) {
         // logic to view challenges available and can be attempted (student, isAuthenticated)
         return new JSONObject();
     }
@@ -43,32 +66,25 @@ public class Controller {
             case "login":
                 // call login logic
                 return this.login(this.obj);
-
             case "register":
                 // call login logic
                 return this.register(this.obj);
-
             case "viewChallenges":
                 // call login logic
                 return this.viewApplicants(this.obj);
-
             case "attemptChallenge":
                 // call login logic
                 return this.attemptChallenge(this.obj);
-
             case "confirm":
                 // call login logic
                 return this.confirm(this.obj);
-
             case "viewApplicants":
                 return this.viewApplicants(this.obj);
-
             default:
                 // command unresolved
                 JSONObject outputObj = new JSONObject();
                 outputObj.put("command", "exception");
                 outputObj.put("reason", "Invalid command");
-
                 return outputObj;
         }
     }
