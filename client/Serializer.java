@@ -5,16 +5,14 @@ import org.json.JSONObject;
 import java.util.Scanner;
 
 public class Serializer {
-    boolean isAuthenticated;
-    boolean isStudent;
+    User user;
 
-    public Serializer(boolean isAuthenticated, boolean isStudent) {
-        this.isAuthenticated = isAuthenticated;
-        this.isStudent = isStudent;
+    public Serializer(User user) {
+        this.user = user;
     }
 
     public String login() {
-        if (this.isAuthenticated) {
+        if (this.user.isAuthenticated) {
             return "Session already authenticated";
         }
 
@@ -53,8 +51,6 @@ public class Serializer {
         obj.put("isAuthenticated", false);
         obj.put("tokens", tokens);
         obj.put("isStudent", true);
-
-
         return obj.toString(4);
     }
 
@@ -64,8 +60,6 @@ public class Serializer {
         obj.put("isAuthenticated", false);
         obj.put("tokens", JSONObject.NULL);
         obj.put("isStudent", true);
-
-
         return obj.toString(4);
     }
 
@@ -75,8 +69,6 @@ public class Serializer {
         obj.put("isAuthenticated", false);
         obj.put("tokens", arr);
         obj.put("isStudent", true);
-
-
         return obj.toString(4);
     }
 
@@ -86,41 +78,37 @@ public class Serializer {
         obj.put("isAuthenticated", false);
         obj.put("tokens", JSONObject.NULL);
         obj.put("isStudent", true);
-
-
         return obj.toString(4);
     }
 
     public String logout() {
-        this.isAuthenticated = false;
+        this.user.isAuthenticated = false;
         return null;
     }
 
     public String serialize(String command) {
         String[] tokens = command.split("\\s+");
-        if (!isAuthenticated && tokens[0].equals("register")) {
+
+        if (!user.isAuthenticated && tokens[0].equals("register")) {
             return this.register(tokens);
         }
 
-        if (!isAuthenticated && tokens[0].equals("login")) {
+        if (!user.isAuthenticated && tokens[0].equals("login")) {
             return this.login();
         }
 
-        if (!isAuthenticated) {
+        if (!user.isAuthenticated) {
             return "Session unauthenticated first login by entering command login";
         }
 
-        if (isStudent) {
+        if (user.isStudent) {
             switch (tokens[0]) {
                 case "logout":
                     return this.logout();
-
                 case "viewChallenges":
                     return this.viewChallenges();
-
                 case "attemptChallenge":
                     return this.attemptChallenge(tokens);
-
                 default:
                     return "Invalid student command";
             }
@@ -128,22 +116,18 @@ public class Serializer {
             switch (tokens[0]) {
                 case "logout":
                     return this.logout();
-
                 case "confirm":
                     return this.confirm(tokens);
-
                 case "viewApplicants":
                     return this.viewApplicants();
-
                 default:
                     return "Invalid school representative command";
             }
         }
-
     }
 
     public static void main(String[] args) {
-        Serializer sample = new Serializer(false, false);
+        Serializer sample = new Serializer(new User());
         sample.serialize("login frank ogenrwothjimfrank@gmail.com");
     }
 }

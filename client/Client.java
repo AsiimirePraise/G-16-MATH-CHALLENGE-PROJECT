@@ -13,15 +13,14 @@ public class Client {
     }
 
     public ClientInstance startClientInstance() throws IOException {
-        ClientInstance clientInstance = new ClientInstance(hostname, port);
+        User user = new User();
+        ClientInstance clientInstance = new ClientInstance(hostname, port, user);
         clientInstance.start();
         return clientInstance;
     }
 
     public static void main(String[] args) throws IOException {
         Client client = new Client("localhost", 8080);
-
-        // run client instance
         // create a new client instance
         client.startClientInstance();
     }
