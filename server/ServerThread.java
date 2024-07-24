@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.*;
+import java.sql.SQLException;
+
 
 public class ServerThread {
     private Socket socket;
@@ -27,7 +29,6 @@ public class ServerThread {
                 break;
             }
         }
-
         // load data into a json format
         JSONObject jsonObject = new JSONObject(clientIn.toString().strip());
         return jsonObject;
@@ -48,7 +49,8 @@ public class ServerThread {
                 // send content back to client
                 output.println(response);
             }
-        } catch (IOException e) {
+
+        } catch (IOException | SQLException | ClassNotFoundException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         } finally {

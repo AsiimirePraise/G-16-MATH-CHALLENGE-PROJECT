@@ -3,6 +3,8 @@ package server;
 import org.json.*;
 
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class Controller {
     JSONObject obj;
@@ -11,9 +13,53 @@ public class Controller {
         this.obj = obj;
     }
 
-    private JSONObject login(JSONObject obj) {
-        // logic to login a student this can work with isAuthenticated == false only (!isAuthenticated)
-        return new JSONObject();
+    private JSONObject login(JSONObject obj) throws SQLException, ClassNotFoundException {
+        // logic to log in a student this can work with isAuthenticated == false only (!isAuthenticated)
+        DbConnection dbConnection = new DbConnection();
+
+        JSONArray tokens = obj.getJSONArray("tokens");
+
+        String username = tokens.get(1).toString();
+        String email = tokens.get(2).toString();
+
+        JSONObject clientResponse = new JSONObject();
+        clientResponse.put("command", "login");
+        clientResponse.put("username", username);
+        clientResponse.put("email", email);
+
+        String readParticipantQuery = "SELECT * FROM participant";
+        ResultSet participantResultSet = dbConnection.read(readParticipantQuery);
+        while (participantResultSet.next()) {
+            if (username.equals(participantResultSet.getString("username")) && email.equals(participantResultSet.getString("emailAddress"))) {
+                // there is a match here
+                clientResponse.put("isStudent", true);
+                clientResponse.put("isAuthenticated", true);
+                clientResponse.put("status", true);
+
+                return clientResponse;
+            }
+        }
+
+
+        String readRepresentativeQuery = "SELECT * FROM school";
+        ResultSet representativeResultSet = dbConnection.read(readRepresentativeQuery);
+        while (representativeResultSet.next()) {
+            if (username.equals(representativeResultSet.getString("representativeName")) && email.equals(representativeResultSet.getString("representativeEmail"))) {
+                // there is a match
+                clientResponse.put("isStudent", false);
+                clientResponse.put("isAuthenticated", true);
+                clientResponse.put("status", true);
+
+                return clientResponse;
+            }
+        }
+
+        clientResponse.put("isStudent", false);
+        clientResponse.put("isAuthenticated", false);
+        clientResponse.put("status", false);
+        clientResponse.put("reason", "Invalid credentials. check the details provided");
+
+        return clientResponse;
     }
 
     private JSONObject register(JSONObject obj) throws IOException {
@@ -27,22 +73,17 @@ public class Controller {
         participantObj.put("dob", tokens.get(5));
         participantObj.put("regNo", tokens.get(6));
         participantObj.put("imagePath", tokens.get(7));
-
         JSONObject clientResponse = new JSONObject();
         clientResponse.put("command", "register");
-
         LocalStorage localStorage = new LocalStorage("participants.json");
         if (!localStorage.read().toString().contains(participantObj.toString())) {
             localStorage.add(participantObj);
             clientResponse.put("status", true);
             clientResponse.put("reason", "Participant created successfully awaiting representative approval");
-
             return clientResponse;
         }
-
         clientResponse.put("status", false);
         clientResponse.put("reason", "Participant creation failed found an existing participant object");
-
         return clientResponse;
     }
 
@@ -66,7 +107,7 @@ public class Controller {
         return new JSONObject();
     }
 
-    public JSONObject run() throws IOException {
+    public JSONObject run() throws IOException, SQLException, ClassNotFoundException {
         switch (this.obj.get("command").toString()) {
             case "login":
                 // call login logic

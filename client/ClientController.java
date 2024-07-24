@@ -11,17 +11,26 @@ public class ClientController {
         this.response = new JSONObject(response);
     }
 
-    private User login() {
+    private User login(JSONObject response) {
         // logic to interpret server response in attempt to login
-        return new User();
+        if (response.getBoolean("status")) {
+            this.user.username = response.getString("username");
+            this.user.email = response.getString("email");
+            this.user.isStudent = response.getBoolean("isStudent");
+            this.user.isAuthenticated = response.getBoolean("isAuthenticated");
+            this.user.output = "[+] Successfully logged in as a " + this.user.username + (this.user.isStudent ? "(student)" : "(representative)");
+        } else {
+            this.user.output = "[-] " + response.get("reason").toString();
+        }
+        return this.user;
     }
 
     private User register(JSONObject response) {
         // logic to interpret server response in attempt to register
         if (response.getBoolean("status")) {
-            this.user.output = "success:: " + response.get("reason").toString();
+            this.user.output = "[+] " + response.get("reason").toString();
         } else {
-            this.user.output = "fail:: " + response.get("reason").toString();
+            this.user.output = "[-] " + response.get("reason").toString();
         }
         return this.user;
     }
@@ -49,7 +58,7 @@ public class ClientController {
     public User exec() {
         switch (this.response.get("command").toString()) {
             case "login" -> {
-                return this.login();
+                return this.login(this.response);
             }
             case "register" -> {
                 return this.register(this.response);
