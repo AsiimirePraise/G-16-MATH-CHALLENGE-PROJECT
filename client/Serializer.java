@@ -41,8 +41,6 @@ public class Serializer {
         obj.put("isAuthenticated", user.isAuthenticated);
         obj.put("tokens", arr);
         obj.put("isStudent", user.isStudent);
-
-
         return obj.toString(4);
     }
 
@@ -58,9 +56,11 @@ public class Serializer {
     public String viewApplicants() {
         JSONObject obj = new JSONObject();
         obj.put("command", "viewApplicants");
-        obj.put("isAuthenticated", false);
-        obj.put("tokens", JSONObject.NULL);
-        obj.put("isStudent", true);
+        obj.put("isAuthenticated", this.user.isAuthenticated);
+        obj.put("isStudent", this.user.isStudent);
+        obj.put("regNo", this.user.regNo);
+
+
         return obj.toString(4);
     }
 

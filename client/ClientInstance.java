@@ -42,7 +42,10 @@ public class ClientInstance {
             Serializer serializer = new Serializer(this.user);
             System.out.print("[" + this.clientId + "] (" + this.user.username + ") -> ");
             // read command line input
+
             // Continuously read from the console and send to the server
+            ClientController clientController = new ClientController(user);
+
             String userInput;
             while ((userInput = consoleInput.readLine()) != null) {
                 // send command to the server
@@ -51,8 +54,8 @@ public class ClientInstance {
                     output.println(serializedCommand);
                     // read response here from the server
                     String response = input.readLine();
-                    ClientController clientController = new ClientController(user, response);
-                    this.user = clientController.exec();
+
+                    this.user = clientController.exec(response);
 
                     System.out.println("\n" + user.output + "\n");
                 } else {

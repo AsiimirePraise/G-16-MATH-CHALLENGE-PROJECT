@@ -4,11 +4,10 @@ import org.json.JSONObject;
 
 public class ClientController {
     User user;
-    JSONObject response;
 
-    public ClientController(User user, String response) {
+
+    public ClientController(User user) {
         this.user = user;
-        this.response = new JSONObject(response);
     }
 
     private User login(JSONObject response) {
@@ -56,13 +55,14 @@ public class ClientController {
         return new User();
     }
 
-    public User exec() {
-        switch (this.response.get("command").toString()) {
+    public User exec(String responseData) {
+        JSONObject response = new JSONObject(responseData);
+        switch (response.get("command").toString()) {
             case "login" -> {
-                return this.login(this.response);
+                return this.login(response);
             }
             case "register" -> {
-                return this.register(this.response);
+                return this.register(response);
             }
             case "attemptChallenge" -> {
                 return this.attemptChallenge();
