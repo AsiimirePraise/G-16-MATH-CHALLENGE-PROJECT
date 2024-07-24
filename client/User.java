@@ -3,6 +3,7 @@ package client;
 public class User {
     String username;
     String email;
+    String regNo;
     boolean isAuthenticated = false;
     boolean isStudent = true;
     String output;

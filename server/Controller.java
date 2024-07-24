@@ -16,49 +16,47 @@ public class Controller {
     private JSONObject login(JSONObject obj) throws SQLException, ClassNotFoundException {
         // logic to log in a student this can work with isAuthenticated == false only (!isAuthenticated)
         DbConnection dbConnection = new DbConnection();
-
         JSONArray tokens = obj.getJSONArray("tokens");
-
         String username = tokens.get(1).toString();
         String email = tokens.get(2).toString();
-
         JSONObject clientResponse = new JSONObject();
         clientResponse.put("command", "login");
         clientResponse.put("username", username);
         clientResponse.put("email", email);
-
         String readParticipantQuery = "SELECT * FROM participant";
         ResultSet participantResultSet = dbConnection.read(readParticipantQuery);
         while (participantResultSet.next()) {
             if (username.equals(participantResultSet.getString("username")) && email.equals(participantResultSet.getString("emailAddress"))) {
                 // there is a match here
+
+                String regNo = participantResultSet.getString("regNo");
+
+                clientResponse.put("regNo", regNo);
                 clientResponse.put("isStudent", true);
                 clientResponse.put("isAuthenticated", true);
                 clientResponse.put("status", true);
-
                 return clientResponse;
             }
         }
-
-
         String readRepresentativeQuery = "SELECT * FROM school";
         ResultSet representativeResultSet = dbConnection.read(readRepresentativeQuery);
         while (representativeResultSet.next()) {
             if (username.equals(representativeResultSet.getString("representativeName")) && email.equals(representativeResultSet.getString("representativeEmail"))) {
                 // there is a match
+
+                String regNo = representativeResultSet.getString("regNo");
+
+                clientResponse.put("regNo", regNo);
                 clientResponse.put("isStudent", false);
                 clientResponse.put("isAuthenticated", true);
                 clientResponse.put("status", true);
-
                 return clientResponse;
             }
         }
-
         clientResponse.put("isStudent", false);
         clientResponse.put("isAuthenticated", false);
         clientResponse.put("status", false);
         clientResponse.put("reason", "Invalid credentials. check the details provided");
-
         return clientResponse;
     }
 
