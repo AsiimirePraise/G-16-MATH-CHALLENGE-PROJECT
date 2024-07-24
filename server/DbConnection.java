@@ -3,7 +3,7 @@ package server;
 import java.sql.*;
 
 public class DbConnection {
-    // database cnnection parameters
+    // database connection parameters
     String url = "jdbc:mysql://localhost:3306/mtchallenge";
     String username = "root";
     String password = "root";
