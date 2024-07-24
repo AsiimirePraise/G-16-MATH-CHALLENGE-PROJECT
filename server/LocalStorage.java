@@ -45,11 +45,11 @@ public class LocalStorage {
         return jsonArray;
     }
 
-    public JSONObject readEntryByName(String name) {
+    public JSONObject readEntryByUserName(String username) {
         JSONArray jsonArray = this.read();
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject jsonObject = jsonArray.getJSONObject(i);
-            if (jsonObject.getString("name").equals(name)) {
+            if (jsonObject.getString("username").equals(username)) {
                 return jsonObject;
             }
         }
@@ -68,12 +68,13 @@ public class LocalStorage {
         return output.toString();
     }
 
-    public void deleteEntryByName(String name) {
+    public void deleteEntryByUserName(String username) {
         JSONArray jsonArray = this.read();
         JSONArray updatedArray = new JSONArray();
+
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject jsonObject = jsonArray.getJSONObject(i);
-            if (!jsonObject.getString("name").equals(name)) {
+            if (!jsonObject.getString("username").equals(username)) {
                 updatedArray.put(jsonObject);
             }
         }

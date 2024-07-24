@@ -12,6 +12,7 @@ public class User {
     public void logout() {
         this.username = "";
         this.email = "";
+        this.regNo = "";
         this.isAuthenticated = false;
     }
 

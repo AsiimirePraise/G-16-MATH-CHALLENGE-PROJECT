@@ -29,7 +29,9 @@ public class Controller {
             if (username.equals(participantResultSet.getString("username")) && email.equals(participantResultSet.getString("emailAddress"))) {
                 // there is a match here
                 String regNo = participantResultSet.getString("regNo");
+
                 clientResponse.put("regNo", regNo);
+                clientResponse.put("schoolName", "undefined");
                 clientResponse.put("isStudent", true);
                 clientResponse.put("isAuthenticated", true);
                 clientResponse.put("status", true);
@@ -41,10 +43,8 @@ public class Controller {
         while (representativeResultSet.next()) {
             if (username.equals(representativeResultSet.getString("representativeName")) && email.equals(representativeResultSet.getString("representativeEmail"))) {
                 // there is a match
-
                 String schoolName = representativeResultSet.getString("name");
                 String regNo = representativeResultSet.getString("regNo");
-
                 clientResponse.put("schoolName", schoolName);
                 clientResponse.put("regNo", regNo);
                 clientResponse.put("isStudent", false);
@@ -95,24 +95,43 @@ public class Controller {
         return new JSONObject();
     }
 
-    private JSONObject confirm(JSONObject obj) {
+    private JSONObject confirm(JSONObject obj) throws IOException, SQLException, ClassNotFoundException {
         // logic to confirm registered students (representatives, isAuthenticated)
-        return new JSONObject();
+        LocalStorage localStorage = new LocalStorage("participants.json");
+
+        String username = obj.getString("username");
+        JSONObject participant = localStorage.readEntryByUserName(username);
+        JSONObject clientResponse = new JSONObject();
+        clientResponse.put("command", "confirm");
+
+        if (participant.isEmpty()) {
+            clientResponse.put("status", false);
+            clientResponse.put("reason", "Invalid command check the username provided");
+            return clientResponse;
+        }
+
+        DbConnection dbConnection = new DbConnection();
+        if (obj.getBoolean("confirm")) {
+            dbConnection.createParticipant(participant.getString("username"), participant.getString("firstname"), participant.getString("lastname"), participant.getString("emailAddress"), participant.getString("dob"), participant.getString("regNo"), participant.getString("imagePath"));
+            localStorage.deleteEntryByUserName(username);
+            clientResponse.put("reason", participant.getString("firstname") + " " + participant.getString("firstname") + " " + participant.getString("emailAddress") + " confirmed successfully");
+        } else {
+            dbConnection.createParticipantRejected(participant.getString("username"), participant.getString("firstname"), participant.getString("lastname"), participant.getString("emailAddress"), participant.getString("dob"), participant.getString("regNo"), participant.getString("imagePath"));
+            localStorage.deleteEntryByUserName(username);
+            clientResponse.put("reason", participant.getString("firstname") + " " + participant.getString("firstname") + " " + participant.getString("emailAddress") + " rejected successfully");
+        }
+        clientResponse.put("status", true);
+        return clientResponse;
     }
 
     private JSONObject viewApplicants(JSONObject obj) throws IOException {
         // logic to confirm registered students (representatives, isAuthenticated)
         String regNo = obj.getString("regNo");
-
         LocalStorage localStorage = new LocalStorage("participants.json");
-
         String participants = localStorage.filterParticipantsByRegNo(regNo);
-
         JSONObject clientResponse = new JSONObject();
         clientResponse.put("command", "viewApplicants");
         clientResponse.put("applicants", participants);
-
-
         return clientResponse;
     }
 
