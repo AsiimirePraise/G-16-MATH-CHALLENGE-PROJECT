@@ -40,11 +40,9 @@ public class ClientInstance {
         ) {
             this.clientId = (String) socket.getInetAddress().getHostAddress();
             Serializer serializer = new Serializer(this.user);
-
             System.out.println("Connection with server a success");
             System.out.print("[" + this.clientId + "] (" + this.user.username + ") -> ");
             // read command line input
-
             // Continuously read from the console and send to the server
             String userInput;
             while ((userInput = consoleInput.readLine()) != null) {
@@ -52,14 +50,16 @@ public class ClientInstance {
                 String serializedCommand = serializer.serialize(userInput);
                 if (isValid(serializedCommand)) {
                     output.println(serializedCommand);
+
                     // read response here from the server
                     String response = input.readLine();
-                    System.out.println("response: " + response);
+                    ClientController clientController = new ClientController(user, response);
+                    this.user = clientController.exec();
+                    System.out.println("response: " + user.output);
+
                 } else {
                     System.out.println(serializedCommand);
                 }
-
-
                 // prompt for the next instruction
                 System.out.print("[" + this.clientId + "] (" + this.user.username + ") -> ");
             }

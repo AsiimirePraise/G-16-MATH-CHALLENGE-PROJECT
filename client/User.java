@@ -5,6 +5,7 @@ public class User {
     String email;
     boolean isAuthenticated = false;
     boolean isStudent = true;
+    String output;
 
     public void logout() {
         this.username = "";
