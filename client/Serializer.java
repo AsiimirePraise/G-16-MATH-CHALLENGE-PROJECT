@@ -15,7 +15,6 @@ public class Serializer {
         if (this.user.isAuthenticated) {
             return "Session already authenticated";
         }
-
         // collect user login details
         Scanner scanner = new Scanner(System.in);
         System.out.println("Please enter user login details (username and email)");
@@ -39,9 +38,11 @@ public class Serializer {
     public String register(String[] arr) {
         JSONObject obj = new JSONObject();
         obj.put("command", "register");
-        obj.put("isAuthenticated", false);
+        obj.put("isAuthenticated", user.isAuthenticated);
         obj.put("tokens", arr);
-        obj.put("isStudent", true);
+        obj.put("isStudent", user.isStudent);
+
+
         return obj.toString(4);
     }
 
@@ -88,19 +89,15 @@ public class Serializer {
 
     public String serialize(String command) {
         String[] tokens = command.split("\\s+");
-
         if (!user.isAuthenticated && tokens[0].equals("register")) {
             return this.register(tokens);
         }
-
         if (!user.isAuthenticated && tokens[0].equals("login")) {
             return this.login();
         }
-
         if (!user.isAuthenticated) {
             return "Session unauthenticated first login by entering command login";
         }
-
         if (user.isStudent) {
             switch (tokens[0]) {
                 case "logout":

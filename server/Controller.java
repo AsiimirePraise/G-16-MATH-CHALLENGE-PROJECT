@@ -2,6 +2,8 @@ package server;
 
 import org.json.*;
 
+import java.io.IOException;
+
 public class Controller {
     JSONObject obj;
 
@@ -10,33 +12,38 @@ public class Controller {
     }
 
     private JSONObject login(JSONObject obj) {
-        // logic to log in a user check the student db and then the representatives (!isAuthenticated)
-        JSONObject output = new JSONObject();
-        if (obj.getBoolean("isAuthenticated")) {
-            output.put("reason", "user is already authenticated");
-            output.put("status", false);
-            return output;
-        }
-
-        output.put("command", "login");
-
-
-        // check the given credentials
-        Object arr = obj.get("tokens");
-        JSONArray tokens = new JSONArray(arr.toString());
-        String username = (String) tokens.get(1);
-        String email = (String) tokens.get(2);
-        output.put("status", true);
-        output.put("userId", 1);
-        output.put("isStudent", true);
-        output.put("username", username);
-        output.put("email", email);
-        return output;
+        // logic to login a student this can work with isAuthenticated == false only (!isAuthenticated)
+        return new JSONObject();
     }
 
-    private JSONObject register(JSONObject obj) {
+    private JSONObject register(JSONObject obj) throws IOException {
         // logic to register student this can work with isAuthenticated == false only (!isAuthenticated)
-        return new JSONObject();
+        JSONArray tokens = obj.getJSONArray("tokens");
+        JSONObject participantObj = new JSONObject();
+        participantObj.put("username", tokens.get(1));
+        participantObj.put("firstname", tokens.get(2));
+        participantObj.put("lastname", tokens.get(3));
+        participantObj.put("emailAddress", tokens.get(4));
+        participantObj.put("dob", tokens.get(5));
+        participantObj.put("regNo", tokens.get(6));
+        participantObj.put("imagePath", tokens.get(7));
+
+        JSONObject clientResponse = new JSONObject();
+        clientResponse.put("command", "register");
+
+        LocalStorage localStorage = new LocalStorage("participants.json");
+        if (!localStorage.read().toString().contains(participantObj.toString())) {
+            localStorage.add(participantObj);
+            clientResponse.put("status", true);
+            clientResponse.put("reason", "Participant created successfully awaiting representative approval");
+
+            return clientResponse;
+        }
+
+        clientResponse.put("status", false);
+        clientResponse.put("reason", "Participant creation failed found an existing participant object");
+
+        return clientResponse;
     }
 
     private JSONObject attemptChallenge(JSONObject obj) {
@@ -59,7 +66,7 @@ public class Controller {
         return new JSONObject();
     }
 
-    public JSONObject run() {
+    public JSONObject run() throws IOException {
         switch (this.obj.get("command").toString()) {
             case "login":
                 // call login logic

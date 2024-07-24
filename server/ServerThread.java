@@ -1,6 +1,7 @@
 package server;
 
 import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -26,8 +27,9 @@ public class ServerThread {
                 break;
             }
         }
+
         // load data into a json format
-        JSONObject jsonObject = new JSONObject(clientIn.toString());
+        JSONObject jsonObject = new JSONObject(clientIn.toString().strip());
         return jsonObject;
     }
 
@@ -35,20 +37,17 @@ public class ServerThread {
         System.out.println("Thread started");
         try (
                 BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter output = new PrintWriter(socket.getOutputStream(), true)) {
+                PrintWriter output = new PrintWriter(socket.getOutputStream(), true)
+        ) {
             // read user input
             JSONObject clientRequest;
             while ((clientRequest = this.readUserInput(input)) != null) {
                 System.out.println(socket.getInetAddress().getHostAddress() + " - - " + clientRequest.toString());
-
                 Controller exec = new Controller(clientRequest);
-
                 String response = exec.run().toString();
-
                 // send content back to client
                 output.println(response);
             }
-
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

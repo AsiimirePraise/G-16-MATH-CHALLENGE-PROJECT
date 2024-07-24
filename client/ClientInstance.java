@@ -50,12 +50,12 @@ public class ClientInstance {
                 String serializedCommand = serializer.serialize(userInput);
                 if (isValid(serializedCommand)) {
                     output.println(serializedCommand);
-
                     // read response here from the server
                     String response = input.readLine();
                     ClientController clientController = new ClientController(user, response);
                     this.user = clientController.exec();
-                    System.out.println("response: " + user.output);
+
+                    System.out.println("\n" + user.output + "\n");
 
                 } else {
                     System.out.println(serializedCommand);
