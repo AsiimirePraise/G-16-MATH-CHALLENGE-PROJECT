@@ -84,21 +84,17 @@ public class DbConnection {
         int score = 0;
         for (int i = 0; i < attempt.length(); i++) {
             JSONObject obj = attempt.getJSONObject(i);
-
             if (obj.get("answer").equals("-")) {
                 score += 0;
                 continue;
             }
-
             String sql = "SELECT `score` FROM `question_answer_record` WHERE `question_id` = " + obj.getInt("question_id") + " AND `answer` = " + obj.get("answer") + ";";
             ResultSet questionScore = this.statement.executeQuery(sql);
-
             if (questionScore.next()) {
                 score += questionScore.getInt("score");
             } else {
                 score -= 3;
             }
-
         }
         return score;
     }
@@ -113,6 +109,11 @@ public class DbConnection {
             ps.executeUpdate();
         }
         ;
+    }
+
+    public ResultSet getRepresentative(String regNo) throws SQLException {
+        String sqlCommand = "SELECT * FROM `school` WHERE regNo = " + regNo + ";";
+        return this.statement.executeQuery(sqlCommand);
     }
 
 }

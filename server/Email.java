@@ -22,24 +22,17 @@ public class Email {
         String password = this.password;
         this.session = Session.getInstance(properties, new javax.mail.Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {
-
                 return new PasswordAuthentication(username, password);
-
             }
-
         });
         this.session.setDebug(true);
     }
 
     public void sendParticipantRegistrationRequestEmail(String to, String participantEmail, String username) throws MessagingException {
         MimeMessage message = new MimeMessage(this.session);
-
         message.setFrom(new InternetAddress(this.from));
-
         message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-
         message.setSubject("Notification of registration under your school");
-
         StringBuilder emailMessage = new StringBuilder();
         emailMessage.append("New participant notification\n\n");
         emailMessage.append("This message is to notify you of a new participant's request to register under your school\n\n");
@@ -47,12 +40,11 @@ public class Email {
         emailMessage.append("\tUsername: ").append(username).append("\n");
         emailMessage.append("\temail: ").append(participantEmail).append("\n");
         emailMessage.append("\nTo verify this participant please login into the command line and confirm with the commands\n");
-        emailMessage.append("\taccept with:-> confirm yes/no <username>\n");
+        emailMessage.append("\tconfirm with:-> confirm yes/no " + username + "\n");
 
         message.setText(emailMessage.toString());
 
         Transport.send(message);
-
     }
 //    public static void main(String[] args) throws MessagingException {
 //        Email email = new Email();

@@ -2,6 +2,7 @@ package server;
 
 import org.json.*;
 
+import javax.mail.MessagingException;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -60,8 +61,11 @@ public class Controller {
         return clientResponse;
     }
 
-    private JSONObject register(JSONObject obj) throws IOException {
+    private JSONObject register(JSONObject obj) throws IOException, MessagingException, SQLException, ClassNotFoundException {
         // logic to register student this can work with isAuthenticated == false only (!isAuthenticated)
+        Email emailAgent = new Email();
+        DbConnection dbConnection = new DbConnection();
+
         JSONArray tokens = obj.getJSONArray("tokens");
         JSONObject participantObj = new JSONObject();
         participantObj.put("username", tokens.get(1));
@@ -73,13 +77,30 @@ public class Controller {
         participantObj.put("imagePath", tokens.get(7));
         JSONObject clientResponse = new JSONObject();
         clientResponse.put("command", "register");
+
+        ResultSet rs = dbConnection.getRepresentative(participantObj.getString("regNo"));
+        String representativeEmail;
+        if (rs.next()) {
+            representativeEmail = rs.getString("representativeEmail");
+        } else {
+            clientResponse.put("status", false);
+            clientResponse.put("reason", "school does not exist in our database");
+
+            return clientResponse;
+        }
+
+
         LocalStorage localStorage = new LocalStorage("participants.json");
         if (!localStorage.read().toString().contains(participantObj.toString())) {
             localStorage.add(participantObj);
             clientResponse.put("status", true);
             clientResponse.put("reason", "Participant created successfully awaiting representative approval");
+
+            emailAgent.sendParticipantRegistrationRequestEmail(representativeEmail, participantObj.getString("emailAddress"), participantObj.getString("username"));
+
             return clientResponse;
         }
+
         clientResponse.put("status", false);
         clientResponse.put("reason", "Participant creation failed found an existing participant object");
         return clientResponse;
@@ -99,7 +120,6 @@ public class Controller {
             question.put("id", challengeQuestions.getString("question_id"));
             question.put("question", challengeQuestions.getString("question"));
             question.put("score", challengeQuestions.getString("score"));
-
             questions.put(question);
         }
         clientResponse.put("command", "attemptChallenge");
@@ -169,27 +189,19 @@ public class Controller {
     public JSONObject attempt(JSONObject obj) throws SQLException, ClassNotFoundException {
         JSONArray attempt = obj.getJSONArray("attempt");
         DbConnection dbConnection = new DbConnection();
-
         JSONObject attemptEvaluation = new JSONObject();
         attemptEvaluation.put("score", dbConnection.getAttemptScore(attempt));
         attemptEvaluation.put("participant_id", obj.getInt("participant_id"));
         attemptEvaluation.put("challenge_id", obj.getInt("challenge_id"));
         attemptEvaluation.put("total_score", obj.getInt("total_score"));
-
         dbConnection.createChallengeAttempt(attemptEvaluation);
-
         // get the score
-
-
         // SELECT score
-
         // add the attempt record
-
-
         return new JSONObject();
     }
 
-    public JSONObject run() throws IOException, SQLException, ClassNotFoundException {
+    public JSONObject run() throws IOException, SQLException, ClassNotFoundException, MessagingException {
         switch (this.obj.get("command").toString()) {
             case "login":
                 // call login logic
@@ -208,11 +220,9 @@ public class Controller {
                 return this.confirm(this.obj);
             case "viewApplicants":
                 return this.viewApplicants(this.obj);
-
             case "attempt":
                 // handle attempts here
                 return this.attempt(this.obj);
-
             default:
                 // command unresolved
                 JSONObject outputObj = new JSONObject();
