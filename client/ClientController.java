@@ -46,14 +46,18 @@ public class ClientController {
 
     private User attemptChallenge(JSONObject response) {
         // logic to interpret server response in attempt to attempt challenge
+        if (!response.getBoolean("status")) {
+            this.user.output = response.getString("reason");
+            return this.user;
+        }
+
         JSONArray allQuestions = response.getJSONArray("questions");
+
         if (allQuestions.isEmpty()) {
             this.user.output = "[-] No available questions in this challenge right now";
             return this.user;
         }
-
         this.user.output = response.toString();
-
         return this.user;
     }
 

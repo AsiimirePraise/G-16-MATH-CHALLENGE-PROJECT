@@ -105,35 +105,40 @@ public class Controller {
         // logic to attempt a challenge respond with the random questions if user is eligible (student, isAuthenticated)
         JSONObject clientResponse = new JSONObject();
         JSONArray questions = new JSONArray();
-        DbConnection dbConnection = new DbConnection();
 
+        DbConnection dbConnection = new DbConnection();
 
         int challengeId = Integer.parseInt((String) new JSONArray(obj.get("tokens").toString()).get(1));
         ResultSet challengeQuestions;
 
-
-        ResultSet rs = dbConnection.read("SELECT challenge_name FROM `challenges` WHERE id = " + challengeId + ";");
+        ResultSet rs = dbConnection.read("SELECT challenge_name, start_date FROM `challenges` WHERE id = " + challengeId + " AND `start_date` <= CURRENT_DATE AND `closing_date` >= CURRENT_DATE;");
+        String challengeName;
         if (rs.next()) {
+            challengeName = rs.getString("challenge_name");
+        } else {
+            JSONObject altResponse = new JSONObject();
+
+            altResponse.put("command", "attemptChallenge");
+            altResponse.put("status", false);
+            altResponse.put("reason", "[-] The requested challenge is currently not open or has expired");
+
+            return altResponse;
         }
-        String challengeName = rs.getString("challenge_name");
 
         challengeQuestions = dbConnection.getChallengeQuestions(challengeId);
         while (challengeQuestions.next()) {
             JSONObject question = new JSONObject();
-
             question.put("id", challengeQuestions.getString("id"));
             question.put("question", challengeQuestions.getString("question"));
             question.put("score", challengeQuestions.getString("score"));
-
             questions.put(question);
         }
-
         // randomize question selection and provide 1 tenth of the questions us math ceil to avoid 0 due to integer divisions
         JSONArray randomlySelectedQuestions = Randomizer.randomize(questions);
-
         clientResponse.put("command", "attemptChallenge");
         clientResponse.put("questions", randomlySelectedQuestions);
         clientResponse.put("challenge_id", challengeId);
+        clientResponse.put("status", true);
         clientResponse.put("challenge_name", challengeName);
         return clientResponse;
     }
