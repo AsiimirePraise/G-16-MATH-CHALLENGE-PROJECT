@@ -33,17 +33,28 @@ public class ClientInstance {
         return pattern.matcher(input).matches();
     }
 
-    public static JSONObject displayQuestionSet(JSONObject challengeObj) {
+    public static JSONArray displayQuestionSet(JSONObject challengeObj) {
         System.out.println("CHALLENGE " + challengeObj.getInt("challenge_id") + " (" + challengeObj.get("challenge_name") + ")");
         Scanner scanner = new Scanner(System.in);
+
         JSONArray questions = challengeObj.getJSONArray("questions");
+        JSONArray solutions = new JSONArray();
+        int count = 1;
         for (int i = 0; i < questions.length(); i++) {
             JSONObject question = questions.getJSONObject(i);
-            System.out.println(question.get("id") + ". " + question.getString("question"));
-            String answer = scanner.nextLine();
+            JSONObject answer = new JSONObject();
+
+            System.out.println(count + ". " + question.get("question"));
+
+            answer.put("question_id", question.getInt("id"));
+            System.out.print(" - ");
+            answer.put("answer", scanner.nextLine());
+
+            solutions.put(answer);
+            count++;
             System.out.print("\n");
         }
-        return new JSONObject();
+        return solutions;
     }
 
     public void start() throws IOException {
@@ -82,7 +93,15 @@ public class ClientInstance {
                         System.out.println("\n" + user.output + "\n");
                     } else {
                         JSONObject questions = new JSONObject(this.user.output);
-                        JSONObject answerSet = displayQuestionSet(questions);
+                        JSONArray answerSet = displayQuestionSet(questions);
+
+                        JSONObject obj = new JSONObject();
+                        obj.put("attempt", answerSet);
+                        obj.put("participant_id", this.user.id);
+                        obj.put("command", "attempt");
+
+                        String inp = obj.toString();
+                        output.println(inp);
                     }
                 } else {
                     System.out.println(serializedCommand);

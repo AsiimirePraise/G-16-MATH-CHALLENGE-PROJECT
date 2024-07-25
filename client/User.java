@@ -4,6 +4,7 @@ public class User {
     String username;
     String email;
     String regNo;
+    int id;
     String schoolName;
     boolean isAuthenticated = false;
     boolean isStudent = true;

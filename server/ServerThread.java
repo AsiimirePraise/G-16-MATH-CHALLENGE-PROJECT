@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.*;
 import java.sql.SQLException;
+import java.util.regex.Pattern;
 
 
 public class ServerThread {
@@ -22,9 +23,18 @@ public class ServerThread {
     public JSONObject readUserInput(BufferedReader input) throws IOException {
         String clientInput;
         StringBuilder clientIn = new StringBuilder();
+
+        String regex = "^\\{.*\\}$";
+        Pattern pattern = Pattern.compile(regex);
+
         // iterate until the end of the json data
         while ((clientInput = input.readLine()) != null) {
+            if (pattern.matcher(clientInput).matches()) {
+                clientIn.append(clientInput);
+                break;
+            }
             clientIn.append(clientInput);
+
             if (clientInput.equals("}")) {
                 break;
             }
@@ -49,7 +59,6 @@ public class ServerThread {
                 // send content back to client
                 output.println(response);
             }
-
         } catch (IOException | SQLException | ClassNotFoundException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

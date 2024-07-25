@@ -13,6 +13,7 @@ public class ClientController {
     private User login(JSONObject response) {
         // logic to interpret server response in attempt to login
         if (response.getBoolean("status")) {
+            this.user.id = response.getInt("participant_id");
             this.user.username = response.getString("username");
             this.user.email = response.getString("email");
             this.user.regNo = response.getString("regNo");
@@ -39,22 +40,17 @@ public class ClientController {
     private User attemptChallenge(JSONObject response) {
         // logic to interpret server response in attempt to attempt challenge
         JSONArray questions = response.getJSONArray("questions");
-
         if (questions.isEmpty()) {
             this.user.output = "[-] No available questions in this challenge right now";
             return this.user;
         }
-
         StringBuilder stringBuilder = new StringBuilder();
-
         stringBuilder.append("\nQUESTIONS \n\n");
         for (int i = 0; i < questions.length(); i++) {
             JSONObject question = new JSONObject(((JSONObject) questions.get(i)).toString(4));
             stringBuilder.append(question.get("id") + ". " + question.getString("question") + "\n\n");
         }
-
         this.user.output = response.toString();
-
         return this.user;
     }
 

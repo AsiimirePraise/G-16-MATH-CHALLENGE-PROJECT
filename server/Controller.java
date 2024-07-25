@@ -28,7 +28,10 @@ public class Controller {
         while (participantResultSet.next()) {
             if (username.equals(participantResultSet.getString("username")) && email.equals(participantResultSet.getString("emailAddress"))) {
                 // there is a match here
+
                 String regNo = participantResultSet.getString("regNo");
+
+                clientResponse.put("participant_id", participantResultSet.getInt("participant_id"));
                 clientResponse.put("regNo", regNo);
                 clientResponse.put("schoolName", "undefined");
                 clientResponse.put("isStudent", true);
@@ -88,26 +91,17 @@ public class Controller {
         // logic to attempt a challenge respond with the random questions if user is eligible (student, isAuthenticated)
         JSONObject clientResponse = new JSONObject();
         JSONArray questions = new JSONArray();
-
         DbConnection dbConnection = new DbConnection();
-
-
 //        dbConnection.read("SELECT `challenge_name` FROM `mtchallenge`")
-
         int challengeId = Integer.parseInt((String) new JSONArray(obj.get("tokens").toString()).get(1));
         ResultSet challengeQuestions;
         challengeQuestions = dbConnection.getChallengeQuestions(challengeId);
-
-
         while (challengeQuestions.next()) {
             JSONObject question = new JSONObject();
             question.put("id", challengeQuestions.getString("question_id"));
             question.put("question", challengeQuestions.getString("question"));
-
             questions.put(question);
         }
-
-        System.out.println(questions.toString());
 
         clientResponse.put("command", "attemptChallenge");
         clientResponse.put("questions", questions);
@@ -173,6 +167,10 @@ public class Controller {
         return clientResponse;
     }
 
+    public JSONObject attempt() {
+        return new JSONObject();
+    }
+
     public JSONObject run() throws IOException, SQLException, ClassNotFoundException {
         switch (this.obj.get("command").toString()) {
             case "login":
@@ -192,6 +190,11 @@ public class Controller {
                 return this.confirm(this.obj);
             case "viewApplicants":
                 return this.viewApplicants(this.obj);
+
+            case "attempt":
+                // handle attempts here
+                return this.attempt();
+
             default:
                 // command unresolved
                 JSONObject outputObj = new JSONObject();
