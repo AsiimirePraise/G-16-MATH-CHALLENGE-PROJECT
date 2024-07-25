@@ -79,30 +79,56 @@ public class DbConnection {
         return preparedStatement.executeQuery();
     }
 
-    public int getAttemptScore(int challenge, JSONArray attempt, int participant) throws SQLException {
+    public JSONObject getAttemptScore(int challenge, JSONArray attempt, int participant, int total) throws SQLException {
         int score = 0;
+        StringBuilder performance = new StringBuilder();
+        int totalTime = 0;
+
+        performance.append("Thank you for participating in this challenge\n");
+        performance.append("\nBelow is your performance in the challenge for each question:\n");
+        performance.append("-----------------------------------------------------------\n\n");
+
         for (int i = 0; i < attempt.length(); i++) {
             JSONObject obj = attempt.getJSONObject(i);
+            performance.append("Question ").append(i + 1).append(":\t");
 
             if (obj.get("answer").equals("-")) {
                 score += 0;
                 this.addAttempt(challenge, participant, obj.getInt("question_id"), false);
+                performance.append("Score: ").append(0).append("\t");
+                performance.append("Duration: ").append(String.format("%02d:%02d", obj.getInt("time") / 60, obj.getInt("time") % 60)).append("\n");
                 continue;
             }
 
-            String sql = "SELECT `score` FROM `question_answers` WHERE `id` = " + obj.getInt("question_id") + " AND `answer` = " + obj.get("answer") + ";";
+            String sql = "SELECT `score` FROM `question_answers` WHERE `id` = " + obj.getInt("question_id") + " AND `answer` = '" + obj.getString("answer") + "';";
             ResultSet questionScore = this.statement.executeQuery(sql);
 
             if (questionScore.next()) {
                 score += questionScore.getInt("score");
+                performance.append("Score: ").append(questionScore.getInt("score")).append("\t");
                 this.addAttempt(challenge, participant, obj.getInt("question_id"), true);
             } else {
                 score -= 3;
+                performance.append("Score: ").append(-3).append("\t");
                 this.addAttempt(challenge, participant, obj.getInt("question_id"), false);
             }
-
+            performance.append("Duration: ").append(String.format("%02d:%02d", obj.getInt("time") / 60, obj.getInt("time") % 60)).append("\n");
+            totalTime += obj.getInt("time");
         }
-        return score;
+
+        performance.append("\nOverall Performance:\n");
+        performance.append("-----------------------------------------------------------\n");
+        performance.append("Final Score: ").append(Math.round(((float) score / (float) total) * 100)).append("\n");
+        performance.append("Total Time: ").append(String.format("%02d:%02d", totalTime / 60, totalTime % 60)).append("\n");
+        performance.append("-----------------------------------------------------------\n");
+
+        JSONObject data = new JSONObject();
+        data.put("results", performance.toString());
+
+        data.put("score", score);
+
+
+        return data;
     }
 
     public void createChallengeAttempt(JSONObject obj) throws SQLException {
@@ -131,5 +157,4 @@ public class DbConnection {
         String sqlCommand = "INSERT INTO `attempts` (`status`, `question`, `participant`, `challenge`) VALUES (" + (status ? "'correct'" : "'wrong'") + ", " + question + ", " + participant + ", " + challenge + ");";
         this.statement.execute(sqlCommand);
     }
-
 }

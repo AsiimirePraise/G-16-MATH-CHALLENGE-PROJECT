@@ -114,22 +114,18 @@ public class Controller {
         DbConnection dbConnection = new DbConnection();
         int challengeId = Integer.parseInt((String) new JSONArray(obj.get("tokens").toString()).get(1));
         ResultSet challengeQuestions;
-
         ResultSet challengeMaxAttemptQuery = dbConnection.read("SELECT new.* FROM (SELECT id, participant, challenge, COUNT(*) AS counts\n" +
                 "FROM participant_challenges\n" +
                 "GROUP BY participant, challenge) AS new WHERE participant=" + obj.getInt("participant") + " AND challenge = " + challengeId + ";");
         if (challengeMaxAttemptQuery.next()) {
             if (challengeMaxAttemptQuery.getInt("counts") > 2) {
                 JSONObject altResponse = new JSONObject();
-
                 altResponse.put("command", "attemptChallenge");
                 altResponse.put("status", false);
                 altResponse.put("reason", "[-] You have already reached the limit for attempting this challenge");
-
                 return altResponse;
             }
         }
-
         ResultSet rs = dbConnection.read("SELECT challenge_name, time_allocation, start_date FROM `challenges` WHERE id = " + challengeId + " AND `start_date` <= CURRENT_DATE AND `closing_date` >= CURRENT_DATE;");
         String challengeName;
         int challengeDuration;
@@ -259,15 +255,21 @@ public class Controller {
     public JSONObject attempt(JSONObject obj) throws SQLException, ClassNotFoundException {
         JSONArray attempt = obj.getJSONArray("attempt");
         DbConnection dbConnection = new DbConnection();
+
         JSONObject attemptEvaluation = new JSONObject();
-        attemptEvaluation.put("score", dbConnection.getAttemptScore(obj.getInt("challenge_id"), attempt, obj.getInt("participant_id")));
+
+        JSONObject resultObj = dbConnection.getAttemptScore(obj.getInt("challenge_id"), attempt, obj.getInt("participant_id"), obj.getInt("total_score"));
+
+        attemptEvaluation.put("score", resultObj.getInt("score"));
         attemptEvaluation.put("participant_id", obj.getInt("participant_id"));
         attemptEvaluation.put("challenge_id", obj.getInt("challenge_id"));
         attemptEvaluation.put("total_score", obj.getInt("total_score"));
         dbConnection.createChallengeAttempt(attemptEvaluation);
+
         JSONObject response = new JSONObject();
         response.put("command", "attempt");
-        response.put("reason", "[+] Your marks have been entered in our database a detailed report will be availed for you once the challenge is done");
+        response.put("reason", resultObj.getString("results"));
+
         return response;
     }
 
