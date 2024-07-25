@@ -51,7 +51,6 @@ public class ClientInstance {
         LocalTime startingTime = LocalTime.now();
         LocalTime closingTime = startingTime.plusMinutes(timeAllocation);
         LocalTime lastTime = startingTime;
-
         for (int i = 0; i < questions.length(); i++) {
             JSONObject question = questions.getJSONObject(i);
             JSONObject answer = new JSONObject();
@@ -60,14 +59,11 @@ public class ClientInstance {
             System.out.println("done: " + solutions.length() + "/10             time-left: " + ((timeAllocation - 1) - remainingTime.toMinutes()) + " minutes " + (60 - (remainingTime.toSeconds() % 60)) + " seconds");
             System.out.println("question: " + question.getString("question") + " (" + question.getInt("score") + " Marks)");
             System.out.print("answer  : ");
-
             answer.put("question_id", question.getInt("id"));
             answer.put("answer", scanner.nextLine());
             answer.put("time", (int) Duration.between(lastTime, LocalTime.now()).getSeconds());
             lastTime = LocalTime.now();
             System.out.println("-----------------------------------------------------\n");
-
-
             if (closingTime.isBefore(LocalTime.now())) {
                 return solutions;
             }
@@ -85,10 +81,11 @@ public class ClientInstance {
                 Socket socket = new Socket(hostname, port);
                 BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 PrintWriter output = new PrintWriter(socket.getOutputStream(), true);
-                BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
+                BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in))
         ) {
-            this.clientId = (String) socket.getInetAddress().getHostAddress();
+            this.clientId = socket.getInetAddress().getHostAddress();
             Serializer serializer = new Serializer(this.user);
+
             printMenu();
             System.out.print("[" + this.clientId + "] (" + this.user.username + ") -> ");
             // read command line input
@@ -122,7 +119,10 @@ public class ClientInstance {
                         obj.put("command", "attempt");
                         obj.put("challenge_id", questions.getInt("challenge_id"));
                         obj.put("total_score", this.cache);
+                        obj.put("is_complete", (questions.length() == answerSet.length()));
+
                         String inp = obj.toString();
+
                         output.println(inp);
                         response = input.readLine();
                         this.user = clientController.exec(response);
