@@ -14,6 +14,7 @@ public class ClientInstance {
     int port;
     String clientId;
     User user;
+    byte cache;
     boolean isStudent;
     boolean isAuthenticated;
 
@@ -30,16 +31,21 @@ public class ClientInstance {
         return pattern.matcher(input).matches();
     }
 
-    public static JSONArray displayQuestionSet(JSONObject challengeObj) {
+    public JSONArray displayQuestionSet(JSONObject challengeObj) {
         System.out.println("CHALLENGE " + challengeObj.getInt("challenge_id") + " (" + challengeObj.get("challenge_name") + ")");
         Scanner scanner = new Scanner(System.in);
+
         JSONArray questions = challengeObj.getJSONArray("questions");
         JSONArray solutions = new JSONArray();
+        this.cache = 0;
         int count = 1;
         for (int i = 0; i < questions.length(); i++) {
             JSONObject question = questions.getJSONObject(i);
             JSONObject answer = new JSONObject();
-            System.out.println(count + ". " + question.get("question"));
+            this.cache += (byte) question.getInt("score");
+
+            System.out.println(count + ". " + question.get("question") + " (" + question.get("score") + " Marks)");
+
             answer.put("question_id", question.getInt("id"));
             System.out.print(" - ");
             answer.put("answer", scanner.nextLine());
@@ -70,19 +76,15 @@ public class ClientInstance {
             String userInput;
             while ((userInput = consoleInput.readLine()) != null) {
                 // send command to the server
-
                 if (userInput.equals("logout") && (this.user.isAuthenticated)) {
                     System.out.println("Session successfully logged out");
                     this.user.logout();
                     System.out.print("[" + this.clientId + "] (" + (!this.user.username.isBlank() ? this.user.username : null) + ") -> ");
                     continue;
                 }
-
                 String serializedCommand = serializer.serialize(userInput);
-
                 if (isValid(serializedCommand)) {
                     output.println(serializedCommand);
-
                     // read response here from the server
                     String response = input.readLine();
                     this.user = clientController.exec(response);
@@ -95,6 +97,9 @@ public class ClientInstance {
                         obj.put("attempt", answerSet);
                         obj.put("participant_id", this.user.id);
                         obj.put("command", "attempt");
+                        obj.put("challenge_id", questions.getInt("challenge_id"));
+                        obj.put("total_score", this.cache);
+
                         String inp = obj.toString();
                         output.println(inp);
                     }

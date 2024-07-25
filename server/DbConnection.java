@@ -1,5 +1,8 @@
 package server;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.sql.*;
 
 public class DbConnection {
@@ -76,4 +79,40 @@ public class DbConnection {
         preparedStatement.setInt(1, challenge_id);
         return preparedStatement.executeQuery();
     }
+
+    public int getAttemptScore(JSONArray attempt) throws SQLException {
+        int score = 0;
+        for (int i = 0; i < attempt.length(); i++) {
+            JSONObject obj = attempt.getJSONObject(i);
+
+            if (obj.get("answer").equals("-")) {
+                score += 0;
+                continue;
+            }
+
+            String sql = "SELECT `score` FROM `question_answer_record` WHERE `question_id` = " + obj.getInt("question_id") + " AND `answer` = " + obj.get("answer") + ";";
+            ResultSet questionScore = this.statement.executeQuery(sql);
+
+            if (questionScore.next()) {
+                score += questionScore.getInt("score");
+            } else {
+                score -= 3;
+            }
+
+        }
+        return score;
+    }
+
+    public void createChallengeAttempt(JSONObject obj) throws SQLException {
+        String sql = "INSERT INTO `participant_challenge_attempt` (`participant_id`, `challenge_id`, `score`, `total`) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement ps = this.connection.prepareStatement(sql)) {
+            ps.setInt(1, obj.getInt("participant_id"));
+            ps.setInt(2, obj.getInt("challenge_id"));
+            ps.setInt(3, obj.getInt("score"));
+            ps.setInt(4, obj.getInt("total_score"));
+            ps.executeUpdate();
+        }
+        ;
+    }
+
 }

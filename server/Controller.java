@@ -28,9 +28,7 @@ public class Controller {
         while (participantResultSet.next()) {
             if (username.equals(participantResultSet.getString("username")) && email.equals(participantResultSet.getString("emailAddress"))) {
                 // there is a match here
-
                 String regNo = participantResultSet.getString("regNo");
-
                 clientResponse.put("participant_id", participantResultSet.getInt("participant_id"));
                 clientResponse.put("regNo", regNo);
                 clientResponse.put("schoolName", "undefined");
@@ -100,9 +98,10 @@ public class Controller {
             JSONObject question = new JSONObject();
             question.put("id", challengeQuestions.getString("question_id"));
             question.put("question", challengeQuestions.getString("question"));
+            question.put("score", challengeQuestions.getString("score"));
+
             questions.put(question);
         }
-
         clientResponse.put("command", "attemptChallenge");
         clientResponse.put("questions", questions);
         clientResponse.put("challenge_id", challengeId);
@@ -167,7 +166,26 @@ public class Controller {
         return clientResponse;
     }
 
-    public JSONObject attempt() {
+    public JSONObject attempt(JSONObject obj) throws SQLException, ClassNotFoundException {
+        JSONArray attempt = obj.getJSONArray("attempt");
+        DbConnection dbConnection = new DbConnection();
+
+        JSONObject attemptEvaluation = new JSONObject();
+        attemptEvaluation.put("score", dbConnection.getAttemptScore(attempt));
+        attemptEvaluation.put("participant_id", obj.getInt("participant_id"));
+        attemptEvaluation.put("challenge_id", obj.getInt("challenge_id"));
+        attemptEvaluation.put("total_score", obj.getInt("total_score"));
+
+        dbConnection.createChallengeAttempt(attemptEvaluation);
+
+        // get the score
+
+
+        // SELECT score
+
+        // add the attempt record
+
+
         return new JSONObject();
     }
 
@@ -193,7 +211,7 @@ public class Controller {
 
             case "attempt":
                 // handle attempts here
-                return this.attempt();
+                return this.attempt(this.obj);
 
             default:
                 // command unresolved
