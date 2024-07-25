@@ -79,6 +79,15 @@ public class Controller {
         participantObj.put("tokenized_image", obj.getJSONObject("tokenized_image"));
         JSONObject clientResponse = new JSONObject();
         clientResponse.put("command", "register");
+
+        ResultSet schoolAcceptance = dbConnection.read("SELECT * FROM `rejected_participants` WHERE email_address = \"" + participantObj.getString("email_address") + "\" AND registration_number = \"" + participantObj.getString("registration_number") + "\";");
+        if (schoolAcceptance.next()) {
+            clientResponse.put("status", false);
+            clientResponse.put("reason", "You can not register under this school again as you have already been rejected before");
+
+            return clientResponse;
+        }
+
         ResultSet rs = dbConnection.getRepresentative(participantObj.getString("registration_number"));
         String representativeEmail;
         if (rs.next()) {
@@ -178,31 +187,22 @@ public class Controller {
             JSONObject tokenObj = participant.getJSONObject("tokenized_image");
             saveProfileImage(tokenObj, pic_path);
             dbConnection.createParticipant(participant.getString("username"), participant.getString("firstname"), participant.getString("lastname"), participant.getString("email_address"), participant.getString("dob"), participant.getString("registration_number"), "participants/" + pic_path);
-
             localStorage.deleteEntryByUserName(username);
             clientResponse.put("reason", username + " - " + participant.getString("email_address") + " confirmed successfully");
-
-
             ResultSet rs = dbConnection.getSchool(participant.getString("registration_number"));
-
             if (rs.next()) {
             }
             String schoolName = rs.getString("name");
-
             Email email = new Email();
             email.sendParticipantConfirmedEmail(participant.getString("email_address"), participant.getString("username"), schoolName);
         } else {
             dbConnection.createParticipantRejected(participant.getString("username"), participant.getString("firstname"), participant.getString("lastname"), participant.getString("email_address"), participant.getString("dob"), participant.getString("registration_number"));
             localStorage.deleteEntryByUserName(username);
             clientResponse.put("reason", username + " - " + participant.getString("email_address") + " rejected successfully");
-
-
             ResultSet rs = dbConnection.getSchool(participant.getString("registration_number"));
-
             if (rs.next()) {
             }
             String schoolName = rs.getString("name");
-
             Email email = new Email();
             email.sendParticipantRejectedEmail(participant.getString("email_address"), participant.getString("username"), schoolName);
         }
