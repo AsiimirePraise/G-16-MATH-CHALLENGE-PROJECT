@@ -1,7 +1,12 @@
 package client;
 
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Serializer {
@@ -57,8 +62,6 @@ public class Serializer {
         obj.put("isAuthenticated", this.user.isAuthenticated);
         obj.put("isStudent", this.user.isStudent);
         obj.put("registration_number", this.user.regNo);
-
-
         return obj.toString(4);
     }
 
@@ -69,7 +72,6 @@ public class Serializer {
         obj.put("registration_number", this.user.regNo);
         obj.put("confirm", (arr[1].toLowerCase().equals("yes")) ? true : false);
         obj.put("tokens", arr);
-
         return obj.toString(4);
     }
 
@@ -120,6 +122,5 @@ public class Serializer {
                     return "Invalid school representative command";
             }
         }
-
     }
 }

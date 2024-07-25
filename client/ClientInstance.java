@@ -34,7 +34,6 @@ public class ClientInstance {
     public JSONArray displayQuestionSet(JSONObject challengeObj) {
         System.out.println("CHALLENGE " + challengeObj.getInt("challenge_id") + " (" + challengeObj.get("challenge_name") + ")");
         Scanner scanner = new Scanner(System.in);
-
         JSONArray questions = challengeObj.getJSONArray("questions");
         JSONArray solutions = new JSONArray();
         this.cache = 0;
@@ -43,9 +42,7 @@ public class ClientInstance {
             JSONObject question = questions.getJSONObject(i);
             JSONObject answer = new JSONObject();
             this.cache += (byte) question.getInt("score");
-
             System.out.println(count + ". " + question.get("question") + " (" + question.get("score") + " Marks)");
-
             answer.put("question_id", question.getInt("id"));
             System.out.print(" - ");
             answer.put("answer", scanner.nextLine());
@@ -67,8 +64,12 @@ public class ClientInstance {
         ) {
             this.clientId = (String) socket.getInetAddress().getHostAddress();
             Serializer serializer = new Serializer(this.user);
+
+            printMenu();
+
             System.out.print("[" + this.clientId + "] (" + this.user.username + ") -> ");
             // read command line input
+
             // Continuously read from the console and send to the server
             ClientController clientController = new ClientController(user);
             String regex = "^\\{.*\\}$";
@@ -99,7 +100,6 @@ public class ClientInstance {
                         obj.put("command", "attempt");
                         obj.put("challenge_id", questions.getInt("challenge_id"));
                         obj.put("total_score", this.cache);
-
                         String inp = obj.toString();
                         output.println(inp);
                     }
@@ -114,5 +114,15 @@ public class ClientInstance {
         } finally {
             System.out.println("Connection with the server timeout");
         }
+    }
+
+    private void printMenu() {
+        System.out.println("MATH CHALLENGE MENU");
+        System.out.println("\nUse the menu below to guide you as you use this client\n");
+        System.out.println("Register username firstname lastname emailAddress date_of_birth school_registration_number path_to_image :\n");
+        System.out.println("viewChallenges");
+        System.out.println("attemptChallenge <challenge_id>");
+        System.out.println("viewApplicants");
+        System.out.println("confirm <yes/no> <applicant_username>\n\n\n");
     }
 }
