@@ -3,10 +3,7 @@ package client;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -36,20 +33,16 @@ public class ClientInstance {
     public static JSONArray displayQuestionSet(JSONObject challengeObj) {
         System.out.println("CHALLENGE " + challengeObj.getInt("challenge_id") + " (" + challengeObj.get("challenge_name") + ")");
         Scanner scanner = new Scanner(System.in);
-
         JSONArray questions = challengeObj.getJSONArray("questions");
         JSONArray solutions = new JSONArray();
         int count = 1;
         for (int i = 0; i < questions.length(); i++) {
             JSONObject question = questions.getJSONObject(i);
             JSONObject answer = new JSONObject();
-
             System.out.println(count + ". " + question.get("question"));
-
             answer.put("question_id", question.getInt("id"));
             System.out.print(" - ");
             answer.put("answer", scanner.nextLine());
-
             solutions.put(answer);
             count++;
             System.out.print("\n");
@@ -77,15 +70,19 @@ public class ClientInstance {
             String userInput;
             while ((userInput = consoleInput.readLine()) != null) {
                 // send command to the server
+
                 if (userInput.equals("logout") && (this.user.isAuthenticated)) {
                     System.out.println("Session successfully logged out");
                     this.user.logout();
                     System.out.print("[" + this.clientId + "] (" + (!this.user.username.isBlank() ? this.user.username : null) + ") -> ");
                     continue;
                 }
+
                 String serializedCommand = serializer.serialize(userInput);
+
                 if (isValid(serializedCommand)) {
                     output.println(serializedCommand);
+
                     // read response here from the server
                     String response = input.readLine();
                     this.user = clientController.exec(response);
@@ -94,12 +91,10 @@ public class ClientInstance {
                     } else {
                         JSONObject questions = new JSONObject(this.user.output);
                         JSONArray answerSet = displayQuestionSet(questions);
-
                         JSONObject obj = new JSONObject();
                         obj.put("attempt", answerSet);
                         obj.put("participant_id", this.user.id);
                         obj.put("command", "attempt");
-
                         String inp = obj.toString();
                         output.println(inp);
                     }
