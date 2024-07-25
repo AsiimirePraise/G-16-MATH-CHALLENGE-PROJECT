@@ -25,15 +25,12 @@ public class Controller {
         clientResponse.put("command", "login");
         clientResponse.put("username", username);
         clientResponse.put("email", email);
-
         String readParticipantQuery = "SELECT * FROM participants";
         ResultSet participantResultSet = dbConnection.read(readParticipantQuery);
         while (participantResultSet.next()) {
             if (username.equals(participantResultSet.getString("username")) && email.equals(participantResultSet.getString("email_address"))) {
                 // there is a match here
-
                 String regNo = participantResultSet.getString("registration_number");
-
                 clientResponse.put("participant_id", participantResultSet.getInt("id"));
                 clientResponse.put("registration_number", regNo);
                 clientResponse.put("schoolName", "undefined");
@@ -43,17 +40,13 @@ public class Controller {
                 return clientResponse;
             }
         }
-
-
         String readRepresentativeQuery = "SELECT * FROM schools";
         ResultSet representativeResultSet = dbConnection.read(readRepresentativeQuery);
         while (representativeResultSet.next()) {
             if (username.equals(representativeResultSet.getString("representative_name")) && email.equals(representativeResultSet.getString("representative_email"))) {
                 // there is a match
-
                 String schoolName = representativeResultSet.getString("name");
                 String regNo = representativeResultSet.getString("registration_number");
-
                 clientResponse.put("participant_id", 0);
                 clientResponse.put("schoolName", schoolName);
                 clientResponse.put("registration_number", regNo);
@@ -84,10 +77,8 @@ public class Controller {
         participantObj.put("registration_number", tokens.get(6));
         participantObj.put("imagePath", tokens.get(7));
         participantObj.put("tokenized_image", obj.getJSONObject("tokenized_image"));
-
         JSONObject clientResponse = new JSONObject();
         clientResponse.put("command", "register");
-
         ResultSet rs = dbConnection.getRepresentative(participantObj.getString("registration_number"));
         String representativeEmail;
         if (rs.next()) {
@@ -102,9 +93,7 @@ public class Controller {
             localStorage.add(participantObj);
             clientResponse.put("status", true);
             clientResponse.put("reason", "Participant created successfully awaiting representative approval");
-
             emailAgent.sendParticipantRegistrationRequestEmail(representativeEmail, participantObj.getString("email_address"), participantObj.getString("username"));
-
             return clientResponse;
         }
         clientResponse.put("status", false);
@@ -121,13 +110,11 @@ public class Controller {
         int challengeId = Integer.parseInt((String) new JSONArray(obj.get("tokens").toString()).get(1));
         ResultSet challengeQuestions;
         challengeQuestions = dbConnection.getChallengeQuestions(challengeId);
-
         while (challengeQuestions.next()) {
             JSONObject question = new JSONObject();
             question.put("id", challengeQuestions.getString("id"));
             question.put("question", challengeQuestions.getString("question"));
             question.put("score", challengeQuestions.getString("score"));
-
             questions.put(question);
         }
         clientResponse.put("command", "attemptChallenge");
@@ -142,7 +129,6 @@ public class Controller {
         DbConnection dbConnection = new DbConnection();
         ResultSet availableChallenges = dbConnection.getChallenges();
         JSONArray challenges = new JSONArray();
-
         while (availableChallenges.next()) {
             JSONObject challenge = new JSONObject();
             challenge.put("id", availableChallenges.getInt("id"));
@@ -151,7 +137,6 @@ public class Controller {
             challenge.put("time_allocation", availableChallenges.getInt("time_allocation"));
             challenge.put("starting_date", availableChallenges.getDate("start_date"));
             challenge.put("closing_date", availableChallenges.getDate("closing_date"));
-
             challenges.put(challenge);
         }
         clientResponse.put("command", "viewChallenges");
@@ -162,7 +147,6 @@ public class Controller {
     private JSONObject confirm(JSONObject obj) throws IOException, SQLException, ClassNotFoundException, MessagingException {
         // logic to confirm registered students (representatives, isAuthenticated)
         LocalStorage localStorage = new LocalStorage("participants.json");
-
         String username = obj.getString("username");
         JSONObject participant = localStorage.readEntryByUserName(username);
         JSONObject clientResponse = new JSONObject();
@@ -172,22 +156,16 @@ public class Controller {
             clientResponse.put("reason", "Invalid command check the username provided");
             return clientResponse;
         }
-
         DbConnection dbConnection = new DbConnection();
         if (obj.getBoolean("confirm")) {
             String pic_path = participant.getString("username") + "_" + participant.getString("registration_number") + ".jpg";
             JSONObject tokenObj = participant.getJSONObject("tokenized_image");
             saveProfileImage(tokenObj, pic_path);
-
             dbConnection.createParticipant(participant.getString("username"), participant.getString("firstname"), participant.getString("lastname"), participant.getString("email_address"), participant.getString("dob"), participant.getString("registration_number"), "participants/" + pic_path);
-
             localStorage.deleteEntryByUserName(username);
             clientResponse.put("reason", participant.getString("firstname") + " " + participant.getString("lastname") + " " + participant.getString("email_address") + " confirmed successfully");
-
-
             Email email = new Email();
             ResultSet rs = dbConnection.getSchool(participant.getString("registration_number"));
-
             if (rs.next()) {
             }
             String schoolName = rs.getString("name");
@@ -204,13 +182,11 @@ public class Controller {
     private static void saveProfileImage(JSONObject s, String pic_path) {
         try (FileOutputStream fileOutputStream = new FileOutputStream("C:\\Users\\ogenr\\Documents\\lar\\recess-project\\public\\assets\\participants\\" + pic_path)) {
             JSONArray arr = s.getJSONArray("data");
-
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject o = arr.getJSONObject(i);
                 byte[] buffer = jsonArrayToBytes(o.getJSONArray("buffer"));
                 fileOutputStream.write(buffer, 0, o.getInt("size"));
             }
-
             System.out.println("file saved as " + pic_path);
         } catch (IOException e) {
             e.printStackTrace();
@@ -228,9 +204,7 @@ public class Controller {
     private JSONObject viewApplicants(JSONObject obj) throws IOException {
         // logic to confirm registered students (representatives, isAuthenticated)
         String regNo = obj.getString("registration_number");
-
         LocalStorage localStorage = new LocalStorage("participants.json");
-
         String participants = localStorage.filterParticipantsByRegNo(regNo);
         JSONObject clientResponse = new JSONObject();
         clientResponse.put("command", "viewApplicants");
@@ -241,7 +215,6 @@ public class Controller {
     public JSONObject attempt(JSONObject obj) throws SQLException, ClassNotFoundException {
         JSONArray attempt = obj.getJSONArray("attempt");
         DbConnection dbConnection = new DbConnection();
-
         JSONObject attemptEvaluation = new JSONObject();
         attemptEvaluation.put("score", dbConnection.getAttemptScore(attempt, obj.getInt("participant_id")));
         attemptEvaluation.put("participant_id", obj.getInt("participant_id"));

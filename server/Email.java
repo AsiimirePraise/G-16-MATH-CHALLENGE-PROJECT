@@ -41,10 +41,28 @@ public class Email {
         emailMessage.append("\temail: ").append(participantEmail).append("\n");
         emailMessage.append("\nTo verify this participant please login into the command line and confirm with the commands\n");
         emailMessage.append("\tconfirm with:-> confirm yes/no " + username + "\n");
+        message.setText(emailMessage.toString());
+        Transport.send(message);
+
+    }
+
+    public void sendParticipantConfirmedEmail(String to, String participantName, String school) throws MessagingException {
+        MimeMessage message = new MimeMessage(this.session);
+
+        message.setFrom(new InternetAddress(this.from));
+
+        message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+
+        message.setSubject("Notification of confirmation");
+
+        StringBuilder emailMessage = new StringBuilder();
+        emailMessage.append("Congrats " + participantName + "\n\n");
+        emailMessage.append("You have been added to " + school);
 
         message.setText(emailMessage.toString());
 
         Transport.send(message);
+
     }
 //    public static void main(String[] args) throws MessagingException {
 //        Email email = new Email();
