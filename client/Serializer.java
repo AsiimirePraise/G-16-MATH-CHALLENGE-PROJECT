@@ -19,23 +19,30 @@ public class Serializer {
         if (this.user.isAuthenticated) {
             return "Session already authenticated";
         }
+
         // collect user login details
         Scanner scanner = new Scanner(System.in);
+
         System.out.println("Please enter your login details:");
+
         System.out.print("Username: ");
         String username = scanner.nextLine();
+
         System.out.print("Email address: ");
         String email = scanner.nextLine();
         System.out.println("\n");
+
         String[] tokens = new String[3];
         tokens[0] = "login";
         tokens[1] = username;
         tokens[2] = email;
+
         JSONObject obj = new JSONObject();
         obj.put("command", "login");
         obj.put("isAuthenticated", false);
         obj.put("tokens", tokens);
         obj.put("isStudent", false);
+
         return obj.toString(4);
     }
 
@@ -46,16 +53,19 @@ public class Serializer {
         obj.put("tokens", arr);
         obj.put("tokenized_image", tokenizeImage(arr[7]));
         obj.put("isStudent", user.isStudent);
+
         return obj.toString(4);
     }
 
     private static JSONObject tokenizeImage(String path) {
         JSONObject jsonObject = new JSONObject();
         JSONArray arr = new JSONArray();
+
         File file = new File(path);
         if (!file.exists()) {
             return new JSONObject();
         }
+
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
             byte[] buffer = new byte[4 * 1024];
             int bytesRead;
@@ -90,6 +100,7 @@ public class Serializer {
         obj.put("isAuthenticated", this.user.isAuthenticated);
         obj.put("isStudent", this.user.isStudent);
         obj.put("registration_number", this.user.regNo);
+
         return obj.toString(4);
     }
 
@@ -100,6 +111,7 @@ public class Serializer {
         obj.put("registration_number", this.user.regNo);
         obj.put("confirm", (arr[1].toLowerCase().equals("yes")) ? true : false);
         obj.put("tokens", arr);
+
         return obj.toString(4);
     }
 
@@ -108,6 +120,7 @@ public class Serializer {
         obj.put("command", "viewChallenges");
         obj.put("isAuthenticated", this.user.isAuthenticated);
         obj.put("isStudent", this.user.isStudent);
+
         return obj.toString(4);
     }
 
@@ -119,7 +132,11 @@ public class Serializer {
     public String serialize(String command) {
         String[] tokens = command.split("\\s+");
         if (!user.isAuthenticated && tokens[0].equals("register")) {
+            // call function to serialise register command
             return this.register(tokens);
+        }
+        if (user.isAuthenticated && tokens[0].equals("login")) {
+            return "Session already authenticated";
         }
         if (!user.isAuthenticated && tokens[0].equals("login")) {
             return this.login();
@@ -130,10 +147,13 @@ public class Serializer {
         if (user.isStudent) {
             switch (tokens[0]) {
                 case "logout":
+                    // call function to serialise login command
                     return this.logout();
                 case "viewChallenges":
+                    // call function to serialise view challenge command
                     return this.viewChallenges();
                 case "attemptChallenge":
+                    // call function to serialise attempt challenge command
                     return this.attemptChallenge(tokens);
                 default:
                     return "Invalid student command";
@@ -141,10 +161,13 @@ public class Serializer {
         } else {
             switch (tokens[0]) {
                 case "logout":
+                    // call function to serialise logout command
                     return this.logout();
                 case "confirm":
+                    // call function to serialise confirm command
                     return this.confirm(tokens);
                 case "viewApplicants":
+                    // call function to serialise view applicants command
                     return this.viewApplicants();
                 default:
                     return "Invalid school representative command";

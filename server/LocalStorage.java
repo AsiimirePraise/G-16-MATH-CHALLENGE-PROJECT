@@ -10,6 +10,7 @@ public class LocalStorage {
     public LocalStorage(String filePath) throws IOException {
         this.filePath = filePath;
         File file = new File(this.filePath);
+
         if (!file.exists()) {
             FileWriter fhandle = new FileWriter(this.filePath);
             fhandle.write(new JSONArray().toString());

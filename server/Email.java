@@ -180,8 +180,18 @@ public class Email {
         table.addCell(createCell(answer, false));
         table.addCell(createCell(String.valueOf(score), false));
     }
-//    public static void main(String[] args) throws MessagingException {
-//        Email email = new Email();
-//        email.sendParticipantRegistrationRequestEmail("ogenrwothjimfrank@gmail.com", "frank@gmail.com", "frank");
-//    }
+
+    public void sendHi(String email) throws MessagingException {
+        MimeMessage message = new MimeMessage(this.session);
+
+        message.setFrom(new InternetAddress(this.from));
+        message.addRecipient(Message.RecipientType.TO, new InternetAddress(email));
+        message.setSubject("Notification of Registration Rejection");
+
+        String emailMessage = "Hello world";
+
+        message.setText(emailMessage);
+
+        Transport.send(message);
+    }
 }

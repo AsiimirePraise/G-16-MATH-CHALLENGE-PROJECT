@@ -16,6 +16,7 @@ public class ClientController {
             this.user.regNo = response.getString("registration_number");
             this.user.schoolName = response.getString("schoolName");
             this.user.isStudent = response.getBoolean("isStudent");
+
             System.out.println("=====================================================");
             System.out.println("       WELCOME TO THE PORTAL " + this.user.username.toUpperCase() + "      ");
             System.out.println("=====================================================");
@@ -34,6 +35,7 @@ public class ClientController {
                 System.out.println("   confirm <yes/no> <applicant_username>");
                 System.out.println("\n=====================================================\n");
             }
+
             this.user.isAuthenticated = response.getBoolean("isAuthenticated");
             this.user.output = "[+] Successfully logged in as a " + this.user.username + (this.user.isStudent ? "(student)" : "(representative)");
         } else {
@@ -86,7 +88,6 @@ public class ClientController {
         }
         stringBuilder.append("To attempt a particular challenge, use the command:\n");
         stringBuilder.append("-> attemptChallenge <challenge_id>\n\n");
-        System.out.println(stringBuilder.toString());
         this.user.output = stringBuilder.toString();
         return this.user;
     }

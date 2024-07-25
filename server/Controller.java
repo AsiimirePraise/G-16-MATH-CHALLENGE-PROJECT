@@ -18,13 +18,16 @@ public class Controller {
     private JSONObject login(JSONObject obj) throws SQLException, ClassNotFoundException {
         // logic to log in a student this can work with isAuthenticated == false only (!isAuthenticated)
         DbConnection dbConnection = new DbConnection();
+
         JSONArray tokens = obj.getJSONArray("tokens");
         String username = tokens.get(1).toString();
         String email = tokens.get(2).toString();
+
         JSONObject clientResponse = new JSONObject();
         clientResponse.put("command", "login");
         clientResponse.put("username", username);
         clientResponse.put("email", email);
+
         String readParticipantQuery = "SELECT * FROM participants";
         ResultSet participantResultSet = dbConnection.read(readParticipantQuery);
         while (participantResultSet.next()) {
@@ -40,6 +43,7 @@ public class Controller {
                 return clientResponse;
             }
         }
+
         String readRepresentativeQuery = "SELECT * FROM schools";
         ResultSet representativeResultSet = dbConnection.read(readRepresentativeQuery);
         while (representativeResultSet.next()) {
@@ -56,6 +60,7 @@ public class Controller {
                 return clientResponse;
             }
         }
+
         clientResponse.put("isStudent", false);
         clientResponse.put("isAuthenticated", false);
         clientResponse.put("status", false);
@@ -65,8 +70,8 @@ public class Controller {
 
     private JSONObject register(JSONObject obj) throws IOException, MessagingException, SQLException, ClassNotFoundException {
         // logic to register student this can work with isAuthenticated == false only (!isAuthenticated)
-        Email emailAgent = new Email();
         DbConnection dbConnection = new DbConnection();
+
         JSONArray tokens = obj.getJSONArray("tokens");
         JSONObject participantObj = new JSONObject();
         participantObj.put("username", tokens.get(1));
@@ -77,14 +82,19 @@ public class Controller {
         participantObj.put("registration_number", tokens.get(6));
         participantObj.put("imagePath", tokens.get(7));
         participantObj.put("tokenized_image", obj.getJSONObject("tokenized_image"));
+
         JSONObject clientResponse = new JSONObject();
         clientResponse.put("command", "register");
+
+        // check whether this user had been rejected before
         ResultSet schoolAcceptance = dbConnection.read("SELECT * FROM `rejected_participants` WHERE email_address = \"" + participantObj.getString("email_address") + "\" AND registration_number = \"" + participantObj.getString("registration_number") + "\";");
         if (schoolAcceptance.next()) {
             clientResponse.put("status", false);
             clientResponse.put("reason", "You can not register under this school again as you have already been rejected before");
             return clientResponse;
         }
+
+        // this is a check to see if the school exists
         ResultSet rs = dbConnection.getRepresentative(participantObj.getString("registration_number"));
         String representativeEmail;
         if (rs.next()) {
@@ -94,16 +104,23 @@ public class Controller {
             clientResponse.put("reason", "school does not exist in our database");
             return clientResponse;
         }
+
+        // school exists and the user registering can go on and register
+
+        // check if participant does not already exist
         LocalStorage localStorage = new LocalStorage("participants.json");
         if (!localStorage.read().toString().contains(participantObj.toString())) {
             localStorage.add(participantObj);
             clientResponse.put("status", true);
             clientResponse.put("reason", "Participant created successfully awaiting representative approval");
+
+            Email emailAgent = new Email();
             emailAgent.sendParticipantRegistrationRequestEmail(representativeEmail, participantObj.getString("email_address"), participantObj.getString("username"));
             return clientResponse;
         }
         clientResponse.put("status", false);
         clientResponse.put("reason", "Participant creation failed found an existing participant object");
+
         return clientResponse;
     }
 
@@ -195,8 +212,20 @@ public class Controller {
             String pic_path = participant.getString("username") + "_" + participant.getString("registration_number") + ".jpg";
             JSONObject tokenObj = participant.getJSONObject("tokenized_image");
             saveProfileImage(tokenObj, pic_path);
+
             dbConnection.createParticipant(participant.getString("username"), participant.getString("firstname"), participant.getString("lastname"), participant.getString("email_address"), participant.getString("dob"), participant.getString("registration_number"), "participants/" + pic_path);
+
             localStorage.deleteEntryByUserName(username);
+
+            ResultSet userEmails = dbConnection.selectEmail(participant.getString("registration_number"));
+            if (userEmails.next()) {}
+            String emailA = userEmails.getString("email_address");
+
+            Email em = new Email();
+
+            em.sendHi(emailA);
+
+
             clientResponse.put("reason", username + " - " + participant.getString("email_address") + " confirmed successfully");
             ResultSet rs = dbConnection.getSchool(participant.getString("registration_number"));
             if (rs.next()) {
@@ -220,7 +249,7 @@ public class Controller {
     }
 
     private static void saveProfileImage(JSONObject s, String pic_path) {
-        try (FileOutputStream fileOutputStream = new FileOutputStream("C:\\Users\\ogenr\\Documents\\lar\\recess-project\\public\\assets\\participants\\" + pic_path)) {
+        try (FileOutputStream fileOutputStream = new FileOutputStream("C:\\Users\\ogenr\\Documents\\lar\\web\\public\\assets\\participants\\" + pic_path)) {
             JSONArray arr = s.getJSONArray("data");
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject o = arr.getJSONObject(i);
@@ -280,16 +309,16 @@ public class Controller {
                 // call login logic
                 return this.login(this.obj);
             case "register":
-                // call login logic
+                // call register logic
                 return this.register(this.obj);
             case "viewChallenges":
-                // call login logic
+                // call view logic
                 return this.viewChallenges(this.obj);
             case "attemptChallenge":
-                // call login logic
+                // call attempt logic
                 return this.attemptChallenge(this.obj);
             case "confirm":
-                // call login logic
+                // call confirm logic
                 return this.confirm(this.obj);
             case "viewApplicants":
                 return this.viewApplicants(this.obj);

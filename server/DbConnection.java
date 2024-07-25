@@ -157,4 +157,9 @@ public class DbConnection {
         String sqlCommand = "INSERT INTO `attempts` (`status`, `question`, `participant`, `challenge`) VALUES (" + (status ? "'correct'" : "'wrong'") + ", " + question + ", " + participant + ", " + challenge + ");";
         this.statement.execute(sqlCommand);
     }
+
+    public ResultSet selectEmail(String regNo) throws SQLException {
+        String sqlQ = "SELECT email_address FROM `participants` WHERE registration_number = \"" + regNo + "\";";
+        return this.statement.executeQuery(sqlQ);
+    }
 }
