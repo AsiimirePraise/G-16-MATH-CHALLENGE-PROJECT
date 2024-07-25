@@ -66,13 +66,12 @@ public class ClientInstance {
             String userInput;
             while ((userInput = consoleInput.readLine()) != null) {
                 // send command to the server
-                if (userInput.equals("logout")) {
+                if (userInput.equals("logout") && (this.user.isAuthenticated)) {
                     System.out.println("Session successfully logged out");
                     this.user.logout();
                     System.out.print("[" + this.clientId + "] (" + (!this.user.username.isBlank() ? this.user.username : null) + ") -> ");
                     continue;
                 }
-
                 String serializedCommand = serializer.serialize(userInput);
                 if (isValid(serializedCommand)) {
                     output.println(serializedCommand);
