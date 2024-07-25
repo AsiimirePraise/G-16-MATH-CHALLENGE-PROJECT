@@ -2,6 +2,7 @@ package client;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import server.Randomizer;
 
 public class ClientController {
     User user;
@@ -46,25 +47,13 @@ public class ClientController {
     private User attemptChallenge(JSONObject response) {
         // logic to interpret server response in attempt to attempt challenge
         JSONArray allQuestions = response.getJSONArray("questions");
-
         if (allQuestions.isEmpty()) {
             this.user.output = "[-] No available questions in this challenge right now";
             return this.user;
         }
 
-        Randomizer randomizer = new Randomizer();
-
-        JSONArray questions = randomizer.randomize(allQuestions);
-        System.out.println(questions.toString());
-
-        StringBuilder stringBuilder = new StringBuilder();
-
-        stringBuilder.append("\nQUESTIONS \n\n");
-        for (int i = 0; i < questions.length(); i++) {
-            JSONObject question = new JSONObject(((JSONObject) questions.get(i)).toString(4));
-            stringBuilder.append(question.get("id") + ". " + question.getString("question") + "\n\n");
-        }
         this.user.output = response.toString();
+
         return this.user;
     }
 

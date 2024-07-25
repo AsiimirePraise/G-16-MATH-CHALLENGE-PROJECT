@@ -73,7 +73,7 @@ public class DbConnection {
     }
 
     public ResultSet getChallengeQuestions(int challenge_id) throws SQLException {
-        String sql = "SELECT qa.* FROM `question_answers` qa JOIN `mtchallenge`.`challenge_question_answers` cqa ON qa.id = cqa.question WHERE cqa.challenge = ?";
+        String sql = "SELECT qa.* FROM `question_answers` qa JOIN `challenge_question_answers` cqa ON qa.id = cqa.question WHERE cqa.challenge = ?";
         PreparedStatement preparedStatement = this.connection.prepareStatement(sql);
         preparedStatement.setInt(1, challenge_id);
         return preparedStatement.executeQuery();
@@ -83,17 +83,13 @@ public class DbConnection {
         int score = 0;
         for (int i = 0; i < attempt.length(); i++) {
             JSONObject obj = attempt.getJSONObject(i);
-
-
             if (obj.get("answer").equals("-")) {
                 score += 0;
                 this.addAttempt(participant, obj.getInt("question_id"), false);
                 continue;
             }
-
             String sql = "SELECT `score` FROM `question_answers` WHERE `id` = " + obj.getInt("question_id") + " AND `answer` = " + obj.get("answer") + ";";
             ResultSet questionScore = this.statement.executeQuery(sql);
-
             if (questionScore.next()) {
                 score += questionScore.getInt("score");
                 this.addAttempt(participant, obj.getInt("question_id"), true);
@@ -101,7 +97,6 @@ public class DbConnection {
                 score -= 3;
                 this.addAttempt(participant, obj.getInt("question_id"), false);
             }
-
         }
         return score;
     }
@@ -132,5 +127,4 @@ public class DbConnection {
         String sqlCommand = "INSERT INTO `attempts` (`status`, `question`, `participant`) VALUES (" + (status ? "'correct'" : "'wrong'") + ", " + question + ", " + participant + ");";
         this.statement.execute(sqlCommand);
     }
-
 }

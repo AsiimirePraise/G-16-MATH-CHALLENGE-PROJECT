@@ -106,21 +106,35 @@ public class Controller {
         JSONObject clientResponse = new JSONObject();
         JSONArray questions = new JSONArray();
         DbConnection dbConnection = new DbConnection();
-//        dbConnection.read("SELECT `challenge_name` FROM `mtchallenge`")
+
+
         int challengeId = Integer.parseInt((String) new JSONArray(obj.get("tokens").toString()).get(1));
         ResultSet challengeQuestions;
+
+
+        ResultSet rs = dbConnection.read("SELECT challenge_name FROM `challenges` WHERE id = " + challengeId + ";");
+        if (rs.next()) {
+        }
+        String challengeName = rs.getString("challenge_name");
+
         challengeQuestions = dbConnection.getChallengeQuestions(challengeId);
         while (challengeQuestions.next()) {
             JSONObject question = new JSONObject();
+
             question.put("id", challengeQuestions.getString("id"));
             question.put("question", challengeQuestions.getString("question"));
             question.put("score", challengeQuestions.getString("score"));
+
             questions.put(question);
         }
+
+        // randomize question selection and provide 1 tenth of the questions us math ceil to avoid 0 due to integer divisions
+        JSONArray randomlySelectedQuestions = Randomizer.randomize(questions);
+
         clientResponse.put("command", "attemptChallenge");
-        clientResponse.put("questions", questions);
+        clientResponse.put("questions", randomlySelectedQuestions);
         clientResponse.put("challenge_id", challengeId);
-        clientResponse.put("challenge_name", challengeId);
+        clientResponse.put("challenge_name", challengeName);
         return clientResponse;
     }
 
