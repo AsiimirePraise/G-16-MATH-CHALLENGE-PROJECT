@@ -1,16 +1,12 @@
 package client;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 import server.Randomizer;
-
 public class ClientController {
     User user;
-
     public ClientController(User user) {
         this.user = user;
     }
-
     private User login(JSONObject response) {
         // logic to interpret server response in attempt to login
         if (response.getBoolean("status")) {
@@ -20,13 +16,11 @@ public class ClientController {
             this.user.regNo = response.getString("registration_number");
             this.user.schoolName = response.getString("schoolName");
             this.user.isStudent = response.getBoolean("isStudent");
-
             System.out.println("=====================================================");
             System.out.println("       WELCOME TO THE PORTAL " + this.user.username.toUpperCase() + "      ");
             System.out.println("=====================================================");
             System.out.println("\nThank you for logging in. You are logged in as a " + (this.user.isStudent ? "student" : "representative") + "\n");
             System.out.println("As a " + (this.user.isStudent ? "student" : "representative") + " you can follow the commands below to navigate the portal:\n");
-
             if (response.getBoolean("isStudent")) {
                 System.out.println("\n1. View Challenges [to view the different open challenges in the system]:");
                 System.out.println("   viewChallenges");
@@ -47,7 +41,6 @@ public class ClientController {
         }
         return this.user;
     }
-
     private User register(JSONObject response) {
         // logic to interpret server response in attempt to register
         if (response.getBoolean("status")) {
@@ -57,7 +50,6 @@ public class ClientController {
         }
         return this.user;
     }
-
     private User attemptChallenge(JSONObject response) {
         // logic to interpret server response in attempt to attempt challenge
         if (!response.getBoolean("status")) {
@@ -72,7 +64,6 @@ public class ClientController {
         this.user.output = response.toString();
         return this.user;
     }
-
     private User viewChallenges(JSONObject response) {
         // logic to interpret server response in attempt to view challenges
         JSONArray challenges = new JSONArray(response.getString("challenges"));
@@ -81,11 +72,9 @@ public class ClientController {
             return this.user;
         }
         StringBuilder stringBuilder = new StringBuilder();
-
         stringBuilder.append("===================================\n");
         stringBuilder.append("             CHALLENGES            \n");
         stringBuilder.append("===================================\n\n");
-
         for (int i = 0; i < challenges.length(); i++) {
             JSONObject challenge = new JSONObject(((JSONObject) challenges.get(i)).toString(4));
             stringBuilder.append("Challenge ID     : " + challenge.get("id") + "\n");
@@ -95,17 +84,12 @@ public class ClientController {
             stringBuilder.append("Duration (mins)  : " + challenge.getInt("time_allocation") + "\n");
             stringBuilder.append("-----------------------------------\n\n");
         }
-
         stringBuilder.append("To attempt a particular challenge, use the command:\n");
         stringBuilder.append("-> attemptChallenge <challenge_id>\n\n");
-
         System.out.println(stringBuilder.toString());
-
         this.user.output = stringBuilder.toString();
-
         return this.user;
     }
-
     private User confirm(JSONObject response) {
         // logic to interpret server response in attempt to confirm
         if (response.getBoolean("status")) {
@@ -115,7 +99,6 @@ public class ClientController {
         }
         return this.user;
     }
-
     private User viewApplicants(JSONObject response) {
         // logic to interpret server response in attempt to view applicants
         JSONArray participants = new JSONArray(response.getString("applicants"));
@@ -123,29 +106,43 @@ public class ClientController {
             this.user.output = "[-] No pending participant registration requests";
             return this.user;
         }
+
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(this.user.schoolName.strip().toUpperCase() + " (registration number: " + this.user.regNo + ")\n");
-        stringBuilder.append("\n");
-        stringBuilder.append("Pending applicants:\n");
+
+        stringBuilder.append(this.user.schoolName.strip().toUpperCase())
+                .append(" (Registration Number: ")
+                .append(this.user.regNo)
+                .append(")\n")
+                .append("====================================\n\n");
+
+        stringBuilder.append("Pending Applicants:\n")
+                .append("------------------------------------\n");
+
         int count = 1;
         for (int i = 0; i < participants.length(); i++) {
             JSONObject participant = new JSONObject(((JSONObject) participants.get(i)).toString(4));
-            stringBuilder.append(count + ". " + participant.getString("username") + " " + participant.getString("email_address") + "\n");
+            stringBuilder.append(count)
+                    .append(". Username: ")
+                    .append(participant.getString("username"))
+                    .append("\n   Email: ")
+                    .append(participant.getString("email_address"))
+                    .append("\n------------------------------------\n");
             count++;
         }
-        stringBuilder.append("\n");
-        stringBuilder.append("Confirm a student using the commands\n");
-        stringBuilder.append(" - confirm yes <username>\n");
-        stringBuilder.append(" - confirm no <username>\n");
+
+        stringBuilder.append("\nTo confirm a student, use the following commands:\n")
+                .append(" - confirm yes <username>\n")
+                .append(" - confirm no <username>\n")
+                .append("====================================\n");
+
         this.user.output = stringBuilder.toString();
+
         return this.user;
     }
-
     private User attempt(JSONObject response) {
         this.user.output = response.getString("reason");
         return this.user;
     }
-
     public User exec(String responseData) {
         JSONObject response = new JSONObject(responseData);
         switch (response.get("command").toString()) {
