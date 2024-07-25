@@ -108,7 +108,6 @@ public class Controller {
         DbConnection dbConnection = new DbConnection();
         int challengeId = Integer.parseInt((String) new JSONArray(obj.get("tokens").toString()).get(1));
         ResultSet challengeQuestions;
-
         ResultSet rs = dbConnection.read("SELECT challenge_name, time_allocation, start_date FROM `challenges` WHERE id = " + challengeId + " AND `start_date` <= CURRENT_DATE AND `closing_date` >= CURRENT_DATE;");
         String challengeName;
         int challengeDuration;
@@ -117,7 +116,6 @@ public class Controller {
             challengeDuration = rs.getInt("time_allocation");
         } else {
             JSONObject altResponse = new JSONObject();
-
             altResponse.put("command", "attemptChallenge");
             altResponse.put("status", false);
             altResponse.put("reason", "[-] The requested challenge is currently not open or has expired");
@@ -180,18 +178,33 @@ public class Controller {
             JSONObject tokenObj = participant.getJSONObject("tokenized_image");
             saveProfileImage(tokenObj, pic_path);
             dbConnection.createParticipant(participant.getString("username"), participant.getString("firstname"), participant.getString("lastname"), participant.getString("email_address"), participant.getString("dob"), participant.getString("registration_number"), "participants/" + pic_path);
+
             localStorage.deleteEntryByUserName(username);
-            clientResponse.put("reason", participant.getString("firstname") + " " + participant.getString("lastname") + " " + participant.getString("email_address") + " confirmed successfully");
-            Email email = new Email();
+            clientResponse.put("reason", username + " - " + participant.getString("email_address") + " confirmed successfully");
+
+
             ResultSet rs = dbConnection.getSchool(participant.getString("registration_number"));
+
             if (rs.next()) {
             }
             String schoolName = rs.getString("name");
+
+            Email email = new Email();
             email.sendParticipantConfirmedEmail(participant.getString("email_address"), participant.getString("username"), schoolName);
         } else {
             dbConnection.createParticipantRejected(participant.getString("username"), participant.getString("firstname"), participant.getString("lastname"), participant.getString("email_address"), participant.getString("dob"), participant.getString("registration_number"));
             localStorage.deleteEntryByUserName(username);
-            clientResponse.put("reason", participant.getString("firstname") + " " + participant.getString("firstname") + " " + participant.getString("email_address") + " rejected successfully");
+            clientResponse.put("reason", username + " - " + participant.getString("email_address") + " rejected successfully");
+
+
+            ResultSet rs = dbConnection.getSchool(participant.getString("registration_number"));
+
+            if (rs.next()) {
+            }
+            String schoolName = rs.getString("name");
+
+            Email email = new Email();
+            email.sendParticipantRejectedEmail(participant.getString("email_address"), participant.getString("username"), schoolName);
         }
         clientResponse.put("status", true);
         return clientResponse;
