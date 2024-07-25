@@ -19,7 +19,6 @@ public class Serializer {
         if (this.user.isAuthenticated) {
             return "Session already authenticated";
         }
-
         // collect user login details
         Scanner scanner = new Scanner(System.in);
         System.out.println("Please enter your login details:");
@@ -27,7 +26,6 @@ public class Serializer {
         String username = scanner.nextLine();
         System.out.print("Email address: ");
         String email = scanner.nextLine();
-
         System.out.println("\n");
         String[] tokens = new String[3];
         tokens[0] = "login";
@@ -81,6 +79,8 @@ public class Serializer {
         JSONObject obj = new JSONObject();
         obj.put("command", "attemptChallenge");
         obj.put("tokens", tokens);
+        obj.put("participant", this.user.id);
+
         return obj.toString(4);
     }
 

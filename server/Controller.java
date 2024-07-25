@@ -79,15 +79,12 @@ public class Controller {
         participantObj.put("tokenized_image", obj.getJSONObject("tokenized_image"));
         JSONObject clientResponse = new JSONObject();
         clientResponse.put("command", "register");
-
         ResultSet schoolAcceptance = dbConnection.read("SELECT * FROM `rejected_participants` WHERE email_address = \"" + participantObj.getString("email_address") + "\" AND registration_number = \"" + participantObj.getString("registration_number") + "\";");
         if (schoolAcceptance.next()) {
             clientResponse.put("status", false);
             clientResponse.put("reason", "You can not register under this school again as you have already been rejected before");
-
             return clientResponse;
         }
-
         ResultSet rs = dbConnection.getRepresentative(participantObj.getString("registration_number"));
         String representativeEmail;
         if (rs.next()) {
@@ -117,6 +114,22 @@ public class Controller {
         DbConnection dbConnection = new DbConnection();
         int challengeId = Integer.parseInt((String) new JSONArray(obj.get("tokens").toString()).get(1));
         ResultSet challengeQuestions;
+
+        ResultSet challengeMaxAttemptQuery = dbConnection.read("SELECT new.* FROM (SELECT id, participant, challenge, COUNT(*) AS counts\n" +
+                "FROM participant_challenges\n" +
+                "GROUP BY participant, challenge) AS new WHERE participant=" + obj.getInt("participant") + " AND challenge = " + challengeId + ";");
+        if (challengeMaxAttemptQuery.next()) {
+            if (challengeMaxAttemptQuery.getInt("counts") > 2) {
+                JSONObject altResponse = new JSONObject();
+
+                altResponse.put("command", "attemptChallenge");
+                altResponse.put("status", false);
+                altResponse.put("reason", "[-] You have already reached the limit for attempting this challenge");
+
+                return altResponse;
+            }
+        }
+
         ResultSet rs = dbConnection.read("SELECT challenge_name, time_allocation, start_date FROM `challenges` WHERE id = " + challengeId + " AND `start_date` <= CURRENT_DATE AND `closing_date` >= CURRENT_DATE;");
         String challengeName;
         int challengeDuration;
