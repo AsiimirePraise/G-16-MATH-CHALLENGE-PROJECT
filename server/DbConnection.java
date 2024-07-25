@@ -1,6 +1,12 @@
 package server;
 
+import java.io.InputStream;
+import java.io.Reader;
+import java.math.BigDecimal;
+import java.net.URL;
 import java.sql.*;
+import java.util.Calendar;
+import java.util.Map;
 
 public class DbConnection {
     // database connection parameters
@@ -63,5 +69,10 @@ public class DbConnection {
             stmt.setString(7, imagePath);
             stmt.executeUpdate();
         }
+    }
+
+    public ResultSet getChallenges() throws SQLException {
+        String sql = "SELECT * FROM `mtchallenge`.`challenge` WHERE `starting_date` <= CURRENT_DATE AND `closing_date` >= CURRENT_DATE;";
+        return this.statement.executeQuery(sql);
     }
 }

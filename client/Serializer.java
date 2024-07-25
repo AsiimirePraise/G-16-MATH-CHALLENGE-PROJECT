@@ -69,16 +69,16 @@ public class Serializer {
         obj.put("regNo", this.user.regNo);
         obj.put("confirm", (arr[1].toLowerCase().equals("yes")) ? true : false);
         obj.put("tokens", arr);
-
         return obj.toString(4);
     }
 
     public String viewChallenges() {
         JSONObject obj = new JSONObject();
         obj.put("command", "viewChallenges");
-        obj.put("isAuthenticated", false);
-        obj.put("tokens", JSONObject.NULL);
-        obj.put("isStudent", true);
+        obj.put("isAuthenticated", this.user.isAuthenticated);
+        obj.put("isStudent", this.user.isStudent);
+
+
         return obj.toString(4);
     }
 

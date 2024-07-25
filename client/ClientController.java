@@ -1,11 +1,15 @@
 package client;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 public class ClientController {
     User user;
+
     public ClientController(User user) {
         this.user = user;
     }
+
     private User login(JSONObject response) {
         // logic to interpret server response in attempt to login
         if (response.getBoolean("status")) {
@@ -21,6 +25,7 @@ public class ClientController {
         }
         return this.user;
     }
+
     private User register(JSONObject response) {
         // logic to interpret server response in attempt to register
         if (response.getBoolean("status")) {
@@ -30,13 +35,34 @@ public class ClientController {
         }
         return this.user;
     }
+
     private User attemptChallenge() {
         // logic to interpret server response in attempt to attempt challenge
         return new User();
     }
-    private User viewChallenges() {
+
+    private User viewChallenges(JSONObject response) {
         // logic to interpret server response in attempt to view challenges
-        return new User();
+        JSONArray challenges = new JSONArray(response.getString("challenges"));
+
+        if (challenges.isEmpty()) {
+            this.user.output = "[-] No open challenges are available right now";
+            return this.user;
+        }
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append("\nCHALLENGES \n\n");
+        for (int i = 0; i < challenges.length(); i++) {
+            JSONObject challenge = new JSONObject(((JSONObject) challenges.get(i)).toString(4));
+            stringBuilder.append("challenge id: " + challenge.get("id") + "\nchallenge name: " + challenge.getString("name") + "\ndifficulty: " + challenge.getString("difficulty") + "\nclosing date: " + challenge.getString("closing_date") + "\t\tduration: " + challenge.getInt("time_allocation") + "\n\n\n");
+        }
+
+        stringBuilder.append("Attempt a particular challenge using the command:\n-> attemptChallenge <challenge_id>\n\n");
+
+        this.user.output = stringBuilder.toString();
+
+        return this.user;
     }
 
     private User confirm(JSONObject response) {
@@ -73,6 +99,7 @@ public class ClientController {
         this.user.output = stringBuilder.toString();
         return this.user;
     }
+
     public User exec(String responseData) {
         JSONObject response = new JSONObject(responseData);
         switch (response.get("command").toString()) {
@@ -86,7 +113,7 @@ public class ClientController {
                 return this.attemptChallenge();
             }
             case "viewChallenges" -> {
-                return this.viewChallenges();
+                return this.viewChallenges(response);
             }
             case "confirm" -> {
                 return this.confirm(response);
