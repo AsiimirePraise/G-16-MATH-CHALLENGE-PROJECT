@@ -64,12 +64,9 @@ public class ClientInstance {
         ) {
             this.clientId = (String) socket.getInetAddress().getHostAddress();
             Serializer serializer = new Serializer(this.user);
-
             printMenu();
-
             System.out.print("[" + this.clientId + "] (" + this.user.username + ") -> ");
             // read command line input
-
             // Continuously read from the console and send to the server
             ClientController clientController = new ClientController(user);
             String regex = "^\\{.*\\}$";
@@ -100,8 +97,17 @@ public class ClientInstance {
                         obj.put("command", "attempt");
                         obj.put("challenge_id", questions.getInt("challenge_id"));
                         obj.put("total_score", this.cache);
+
                         String inp = obj.toString();
+
                         output.println(inp);
+
+                        response = input.readLine();
+
+                        this.user = clientController.exec(response);
+
+                        System.out.println("\n" + user.output + "\n");
+
                     }
                 } else {
                     System.out.println(serializedCommand);

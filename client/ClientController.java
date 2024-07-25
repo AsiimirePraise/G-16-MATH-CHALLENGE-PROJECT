@@ -50,9 +50,7 @@ public class ClientController {
             this.user.output = response.getString("reason");
             return this.user;
         }
-
         JSONArray allQuestions = response.getJSONArray("questions");
-
         if (allQuestions.isEmpty()) {
             this.user.output = "[-] No available questions in this challenge right now";
             return this.user;
@@ -114,6 +112,12 @@ public class ClientController {
         return this.user;
     }
 
+    private User attempt(JSONObject response) {
+        this.user.output = response.getString("reason");
+
+        return this.user;
+    }
+
     public User exec(String responseData) {
         JSONObject response = new JSONObject(responseData);
         switch (response.get("command").toString()) {
@@ -131,6 +135,9 @@ public class ClientController {
             }
             case "confirm" -> {
                 return this.confirm(response);
+            }
+            case "attempt" -> {
+                return this.attempt(response);
             }
             case "viewApplicants" -> {
                 return this.viewApplicants(response);

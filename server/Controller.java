@@ -105,26 +105,20 @@ public class Controller {
         // logic to attempt a challenge respond with the random questions if user is eligible (student, isAuthenticated)
         JSONObject clientResponse = new JSONObject();
         JSONArray questions = new JSONArray();
-
         DbConnection dbConnection = new DbConnection();
-
         int challengeId = Integer.parseInt((String) new JSONArray(obj.get("tokens").toString()).get(1));
         ResultSet challengeQuestions;
-
         ResultSet rs = dbConnection.read("SELECT challenge_name, start_date FROM `challenges` WHERE id = " + challengeId + " AND `start_date` <= CURRENT_DATE AND `closing_date` >= CURRENT_DATE;");
         String challengeName;
         if (rs.next()) {
             challengeName = rs.getString("challenge_name");
         } else {
             JSONObject altResponse = new JSONObject();
-
             altResponse.put("command", "attemptChallenge");
             altResponse.put("status", false);
             altResponse.put("reason", "[-] The requested challenge is currently not open or has expired");
-
             return altResponse;
         }
-
         challengeQuestions = dbConnection.getChallengeQuestions(challengeId);
         while (challengeQuestions.next()) {
             JSONObject question = new JSONObject();
@@ -239,11 +233,14 @@ public class Controller {
         attemptEvaluation.put("participant_id", obj.getInt("participant_id"));
         attemptEvaluation.put("challenge_id", obj.getInt("challenge_id"));
         attemptEvaluation.put("total_score", obj.getInt("total_score"));
+
         dbConnection.createChallengeAttempt(attemptEvaluation);
-        // get the score
-        // SELECT score
-        // add the attempt record
-        return new JSONObject();
+
+        JSONObject response = new JSONObject();
+        response.put("command", "attempt");
+        response.put("reason", "[+] Your marks have been entered in our database a detailed report will be availed for you once the challenge is done");
+
+        return response;
     }
 
     public JSONObject run() throws IOException, SQLException, ClassNotFoundException, MessagingException {
