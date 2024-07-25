@@ -79,24 +79,28 @@ public class DbConnection {
         return preparedStatement.executeQuery();
     }
 
-    public int getAttemptScore(JSONArray attempt, int participant) throws SQLException {
+    public int getAttemptScore(int challenge, JSONArray attempt, int participant) throws SQLException {
         int score = 0;
         for (int i = 0; i < attempt.length(); i++) {
             JSONObject obj = attempt.getJSONObject(i);
+
             if (obj.get("answer").equals("-")) {
                 score += 0;
-                this.addAttempt(participant, obj.getInt("question_id"), false);
+                this.addAttempt(challenge, participant, obj.getInt("question_id"), false);
                 continue;
             }
+
             String sql = "SELECT `score` FROM `question_answers` WHERE `id` = " + obj.getInt("question_id") + " AND `answer` = " + obj.get("answer") + ";";
             ResultSet questionScore = this.statement.executeQuery(sql);
+
             if (questionScore.next()) {
                 score += questionScore.getInt("score");
-                this.addAttempt(participant, obj.getInt("question_id"), true);
+                this.addAttempt(challenge, participant, obj.getInt("question_id"), true);
             } else {
                 score -= 3;
-                this.addAttempt(participant, obj.getInt("question_id"), false);
+                this.addAttempt(challenge, participant, obj.getInt("question_id"), false);
             }
+
         }
         return score;
     }
@@ -123,8 +127,9 @@ public class DbConnection {
         return this.statement.executeQuery(sqlCommand);
     }
 
-    public void addAttempt(int participant, int question, boolean status) throws SQLException {
-        String sqlCommand = "INSERT INTO `attempts` (`status`, `question`, `participant`) VALUES (" + (status ? "'correct'" : "'wrong'") + ", " + question + ", " + participant + ");";
+    public void addAttempt(int challenge, int participant, int question, boolean status) throws SQLException {
+        String sqlCommand = "INSERT INTO `attempts` (`status`, `question`, `participant`, `challenge`) VALUES (" + (status ? "'correct'" : "'wrong'") + ", " + question + ", " + participant + ", " + challenge + ");";
         this.statement.execute(sqlCommand);
     }
+
 }

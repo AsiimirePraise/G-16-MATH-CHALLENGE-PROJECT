@@ -228,18 +228,16 @@ public class Controller {
     public JSONObject attempt(JSONObject obj) throws SQLException, ClassNotFoundException {
         JSONArray attempt = obj.getJSONArray("attempt");
         DbConnection dbConnection = new DbConnection();
+
         JSONObject attemptEvaluation = new JSONObject();
-        attemptEvaluation.put("score", dbConnection.getAttemptScore(attempt, obj.getInt("participant_id")));
+        attemptEvaluation.put("score", dbConnection.getAttemptScore(obj.getInt("challenge_id"), attempt, obj.getInt("participant_id")));
         attemptEvaluation.put("participant_id", obj.getInt("participant_id"));
         attemptEvaluation.put("challenge_id", obj.getInt("challenge_id"));
         attemptEvaluation.put("total_score", obj.getInt("total_score"));
-
         dbConnection.createChallengeAttempt(attemptEvaluation);
-
         JSONObject response = new JSONObject();
         response.put("command", "attempt");
         response.put("reason", "[+] Your marks have been entered in our database a detailed report will be availed for you once the challenge is done");
-
         return response;
     }
 

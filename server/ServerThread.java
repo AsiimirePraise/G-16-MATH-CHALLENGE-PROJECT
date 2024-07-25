@@ -1,5 +1,6 @@
 package server;
 
+import com.itextpdf.text.DocumentException;
 import org.json.JSONObject;
 
 import javax.mail.MessagingException;
@@ -47,6 +48,8 @@ public class ServerThread {
             // read user input
             JSONObject clientRequest;
             while ((clientRequest = this.readUserInput(input)) != null) {
+                Live live = new Live();
+                live.check();
                 System.out.println(socket.getInetAddress().getHostAddress() + " - - " + clientRequest.toString());
                 Controller exec = new Controller(clientRequest);
 
@@ -56,6 +59,8 @@ public class ServerThread {
             }
         } catch (IOException | SQLException | ClassNotFoundException e) {
             e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (DocumentException e) {
             throw new RuntimeException(e);
         } finally {
             socket.close();
