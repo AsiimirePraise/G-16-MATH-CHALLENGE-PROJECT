@@ -36,32 +36,43 @@ public class ClientController {
         return this.user;
     }
 
-    private User attemptChallenge() {
+    private User attemptChallenge(JSONObject response) {
         // logic to interpret server response in attempt to attempt challenge
-        return new User();
-    }
+        JSONArray questions = response.getJSONArray("questions");
 
-    private User viewChallenges(JSONObject response) {
-        // logic to interpret server response in attempt to view challenges
-        JSONArray challenges = new JSONArray(response.getString("challenges"));
-
-        if (challenges.isEmpty()) {
-            this.user.output = "[-] No open challenges are available right now";
+        if (questions.isEmpty()) {
+            this.user.output = "[-] No available questions in this challenge right now";
             return this.user;
         }
 
         StringBuilder stringBuilder = new StringBuilder();
 
+        stringBuilder.append("\nQUESTIONS \n\n");
+        for (int i = 0; i < questions.length(); i++) {
+            JSONObject question = new JSONObject(((JSONObject) questions.get(i)).toString(4));
+            stringBuilder.append(question.get("id") + ". " + question.getString("question") + "\n\n");
+        }
+
+        this.user.output = response.toString();
+
+        return this.user;
+    }
+
+    private User viewChallenges(JSONObject response) {
+        // logic to interpret server response in attempt to view challenges
+        JSONArray challenges = new JSONArray(response.getString("challenges"));
+        if (challenges.isEmpty()) {
+            this.user.output = "[-] No open challenges are available right now";
+            return this.user;
+        }
+        StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("\nCHALLENGES \n\n");
         for (int i = 0; i < challenges.length(); i++) {
             JSONObject challenge = new JSONObject(((JSONObject) challenges.get(i)).toString(4));
             stringBuilder.append("challenge id: " + challenge.get("id") + "\nchallenge name: " + challenge.getString("name") + "\ndifficulty: " + challenge.getString("difficulty") + "\nclosing date: " + challenge.getString("closing_date") + "\t\tduration: " + challenge.getInt("time_allocation") + "\n\n\n");
         }
-
         stringBuilder.append("Attempt a particular challenge using the command:\n-> attemptChallenge <challenge_id>\n\n");
-
         this.user.output = stringBuilder.toString();
-
         return this.user;
     }
 
@@ -110,7 +121,7 @@ public class ClientController {
                 return this.register(response);
             }
             case "attemptChallenge" -> {
-                return this.attemptChallenge();
+                return this.attemptChallenge(response);
             }
             case "viewChallenges" -> {
                 return this.viewChallenges(response);

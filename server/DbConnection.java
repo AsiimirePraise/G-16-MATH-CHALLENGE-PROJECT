@@ -1,12 +1,6 @@
 package server;
 
-import java.io.InputStream;
-import java.io.Reader;
-import java.math.BigDecimal;
-import java.net.URL;
 import java.sql.*;
-import java.util.Calendar;
-import java.util.Map;
 
 public class DbConnection {
     // database connection parameters
@@ -74,5 +68,12 @@ public class DbConnection {
     public ResultSet getChallenges() throws SQLException {
         String sql = "SELECT * FROM `mtchallenge`.`challenge` WHERE `starting_date` <= CURRENT_DATE AND `closing_date` >= CURRENT_DATE;";
         return this.statement.executeQuery(sql);
+    }
+
+    public ResultSet getChallengeQuestions(int challenge_id) throws SQLException {
+        String sql = "SELECT qar.* FROM `mtchallenge`.`question_answer_record` qar JOIN `mtchallenge`.`challenge_question_answer_record` cqar ON qar.question_id = cqar.question_id WHERE cqar.challenge_id = ?";
+        PreparedStatement preparedStatement = this.connection.prepareStatement(sql);
+        preparedStatement.setInt(1, challenge_id);
+        return preparedStatement.executeQuery();
     }
 }

@@ -84,18 +84,43 @@ public class Controller {
         return clientResponse;
     }
 
-    private JSONObject attemptChallenge(JSONObject obj) {
+    private JSONObject attemptChallenge(JSONObject obj) throws SQLException, ClassNotFoundException {
         // logic to attempt a challenge respond with the random questions if user is eligible (student, isAuthenticated)
-        return new JSONObject();
+        JSONObject clientResponse = new JSONObject();
+        JSONArray questions = new JSONArray();
+
+        DbConnection dbConnection = new DbConnection();
+
+
+//        dbConnection.read("SELECT `challenge_name` FROM `mtchallenge`")
+
+        int challengeId = Integer.parseInt((String) new JSONArray(obj.get("tokens").toString()).get(1));
+        ResultSet challengeQuestions;
+        challengeQuestions = dbConnection.getChallengeQuestions(challengeId);
+
+
+        while (challengeQuestions.next()) {
+            JSONObject question = new JSONObject();
+            question.put("id", challengeQuestions.getString("question_id"));
+            question.put("question", challengeQuestions.getString("question"));
+
+            questions.put(question);
+        }
+
+        System.out.println(questions.toString());
+
+        clientResponse.put("command", "attemptChallenge");
+        clientResponse.put("questions", questions);
+        clientResponse.put("challenge_id", challengeId);
+        clientResponse.put("challenge_name", challengeId);
+        return clientResponse;
     }
 
     private JSONObject viewChallenges(JSONObject obj) throws SQLException, ClassNotFoundException {
         JSONObject clientResponse = new JSONObject();
-
         DbConnection dbConnection = new DbConnection();
         ResultSet availableChallenges = dbConnection.getChallenges();
         JSONArray challenges = new JSONArray();
-
         while (availableChallenges.next()) {
             JSONObject challenge = new JSONObject();
             challenge.put("id", availableChallenges.getInt("challenge_id"));
@@ -104,13 +129,10 @@ public class Controller {
             challenge.put("time_allocation", availableChallenges.getInt("time_allocation"));
             challenge.put("starting_date", availableChallenges.getDate("starting_date"));
             challenge.put("closing_date", availableChallenges.getDate("closing_date"));
-
             challenges.put(challenge);
         }
-
         clientResponse.put("command", "viewChallenges");
         clientResponse.put("challenges", challenges.toString());
-
         return clientResponse;
     }
 
@@ -159,11 +181,9 @@ public class Controller {
             case "register":
                 // call login logic
                 return this.register(this.obj);
-
             case "viewChallenges":
                 // call login logic
                 return this.viewChallenges(this.obj);
-
             case "attemptChallenge":
                 // call login logic
                 return this.attemptChallenge(this.obj);

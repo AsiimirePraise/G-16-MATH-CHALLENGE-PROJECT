@@ -1,10 +1,14 @@
 package client;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Scanner;
 import java.util.regex.Pattern;
 
 public class ClientInstance {
@@ -29,8 +33,23 @@ public class ClientInstance {
         return pattern.matcher(input).matches();
     }
 
+    public static JSONObject displayQuestionSet(JSONObject challengeObj) {
+        System.out.println("CHALLENGE " + challengeObj.getInt("challenge_id") + " (" + challengeObj.get("challenge_name") + ")");
+        Scanner scanner = new Scanner(System.in);
+
+        JSONArray questions = challengeObj.getJSONArray("questions");
+        for (int i = 0; i < questions.length(); i++) {
+            JSONObject question = questions.getJSONObject(i);
+            System.out.println(question.get("id") + ". " + question.getString("question"));
+            String answer = scanner.nextLine();
+            System.out.print("\n");
+        }
+        return new JSONObject();
+    }
+
     public void start() throws IOException {
         // Todo: create a parent menu
+
         // execute code for interacting with the server
         try (
                 Socket socket = new Socket(hostname, port);
@@ -45,6 +64,9 @@ public class ClientInstance {
 
             // Continuously read from the console and send to the server
             ClientController clientController = new ClientController(user);
+            String regex = "^\\{.*\\}$";
+            Pattern pattern = Pattern.compile(regex);
+
 
             String userInput;
             while ((userInput = consoleInput.readLine()) != null) {
@@ -57,7 +79,14 @@ public class ClientInstance {
 
                     this.user = clientController.exec(response);
 
-                    System.out.println("\n" + user.output + "\n");
+                    if (!pattern.matcher(this.user.output).matches()) {
+                        System.out.println("\n" + user.output + "\n");
+                    } else {
+                        JSONObject questions = new JSONObject(this.user.output);
+                        JSONObject answerSet = displayQuestionSet(questions);
+                    }
+
+
                 } else {
                     System.out.println(serializedCommand);
                 }

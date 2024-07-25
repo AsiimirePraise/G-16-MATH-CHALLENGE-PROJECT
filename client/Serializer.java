@@ -47,9 +47,8 @@ public class Serializer {
     public String attemptChallenge(String[] tokens) {
         JSONObject obj = new JSONObject();
         obj.put("command", "attemptChallenge");
-        obj.put("isAuthenticated", false);
         obj.put("tokens", tokens);
-        obj.put("isStudent", true);
+
         return obj.toString(4);
     }
 
@@ -77,8 +76,6 @@ public class Serializer {
         obj.put("command", "viewChallenges");
         obj.put("isAuthenticated", this.user.isAuthenticated);
         obj.put("isStudent", this.user.isStudent);
-
-
         return obj.toString(4);
     }
 
