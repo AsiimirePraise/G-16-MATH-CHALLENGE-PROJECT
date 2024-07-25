@@ -20,11 +20,25 @@ public class ClientController {
             this.user.regNo = response.getString("registration_number");
             this.user.schoolName = response.getString("schoolName");
             this.user.isStudent = response.getBoolean("isStudent");
+
+            System.out.println("=====================================================");
+            System.out.println("       WELCOME TO THE PORTAL " + this.user.username.toUpperCase() + "      ");
+            System.out.println("=====================================================");
+            System.out.println("\nThank you for logging in. You are logged in as a " + (this.user.isStudent ? "student" : "representative") + "\n");
+            System.out.println("As a " + (this.user.isStudent ? "student" : "representative") + " you can follow the commands below to navigate the portal:\n");
+
             if (response.getBoolean("isStudent")) {
-                System.out.println("Thank you for logging in\n");
-                System.out.println("follow the following commands to navigate");
-                System.out.println("viewChallenges                 : to view challenges");
-                System.out.println("AttemptChallenge <challenge-id>: to view challenges");
+                System.out.println("\n1. View Challenges [to view the different open challenges in the system]:");
+                System.out.println("   viewChallenges");
+                System.out.println("\n2. Attempt Challenge [to attempt a particular open challenge]:");
+                System.out.println("   attemptChallenge <challenge_id>");
+                System.out.println("\n=====================================================\n");
+            } else {
+                System.out.println("\n1. View Applicants [to view registering participants]:");
+                System.out.println("   viewApplicants");
+                System.out.println("\n2. Confirm Applicant [to confirm participant registration]:");
+                System.out.println("   confirm <yes/no> <applicant_username>");
+                System.out.println("\n=====================================================\n");
             }
             this.user.isAuthenticated = response.getBoolean("isAuthenticated");
             this.user.output = "[+] Successfully logged in as a " + this.user.username + (this.user.isStudent ? "(student)" : "(representative)");
@@ -67,13 +81,28 @@ public class ClientController {
             return this.user;
         }
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("\nCHALLENGES \n\n");
+
+        stringBuilder.append("===================================\n");
+        stringBuilder.append("             CHALLENGES            \n");
+        stringBuilder.append("===================================\n\n");
+
         for (int i = 0; i < challenges.length(); i++) {
             JSONObject challenge = new JSONObject(((JSONObject) challenges.get(i)).toString(4));
-            stringBuilder.append("challenge id: " + challenge.get("id") + "\nchallenge name: " + challenge.getString("name") + "\ndifficulty: " + challenge.getString("difficulty") + "\nclosing date: " + challenge.getString("closing_date") + "\t\tduration: " + challenge.getInt("time_allocation") + "\n\n\n");
+            stringBuilder.append("Challenge ID     : " + challenge.get("id") + "\n");
+            stringBuilder.append("Challenge Name   : " + challenge.getString("name") + "\n");
+            stringBuilder.append("Difficulty       : " + challenge.getString("difficulty") + "\n");
+            stringBuilder.append("Closing Date     : " + challenge.getString("closing_date") + "\n");
+            stringBuilder.append("Duration (mins)  : " + challenge.getInt("time_allocation") + "\n");
+            stringBuilder.append("-----------------------------------\n\n");
         }
-        stringBuilder.append("Attempt a particular challenge using the command:\n-> attemptChallenge <challenge_id>\n\n");
+
+        stringBuilder.append("To attempt a particular challenge, use the command:\n");
+        stringBuilder.append("-> attemptChallenge <challenge_id>\n\n");
+
+        System.out.println(stringBuilder.toString());
+
         this.user.output = stringBuilder.toString();
+
         return this.user;
     }
 
@@ -114,7 +143,6 @@ public class ClientController {
 
     private User attempt(JSONObject response) {
         this.user.output = response.getString("reason");
-
         return this.user;
     }
 

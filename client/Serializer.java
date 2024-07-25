@@ -19,13 +19,15 @@ public class Serializer {
         if (this.user.isAuthenticated) {
             return "Session already authenticated";
         }
+
         // collect user login details
         Scanner scanner = new Scanner(System.in);
-        System.out.println("Please enter user login details (username and email)");
+        System.out.println("Please enter your login details:");
         System.out.print("Username: ");
         String username = scanner.nextLine();
-        System.out.print("Email: ");
+        System.out.print("Email address: ");
         String email = scanner.nextLine();
+
         System.out.println("\n");
         String[] tokens = new String[3];
         tokens[0] = "login";
@@ -46,38 +48,29 @@ public class Serializer {
         obj.put("tokens", arr);
         obj.put("tokenized_image", tokenizeImage(arr[7]));
         obj.put("isStudent", user.isStudent);
-
-
         return obj.toString(4);
     }
 
     private static JSONObject tokenizeImage(String path) {
         JSONObject jsonObject = new JSONObject();
         JSONArray arr = new JSONArray();
-
         File file = new File(path);
         if (!file.exists()) {
             return new JSONObject();
         }
-
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
             byte[] buffer = new byte[4 * 1024];
             int bytesRead;
-
-
             while ((bytesRead = fileInputStream.read(buffer)) != -1) {
                 JSONObject obj = new JSONObject();
                 byte[] bufferCopy = new byte[bytesRead];
                 System.arraycopy(buffer, 0, bufferCopy, 0, bytesRead);
-
                 obj.put("buffer", bufferCopy);
                 obj.put("size", bytesRead);
                 arr.put(obj);
             }
-
             jsonObject.put("data", arr);
             jsonObject.put("size", new File(path).length());
-
         } catch (IOException e) {
             e.printStackTrace();
         }

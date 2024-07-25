@@ -108,12 +108,16 @@ public class Controller {
         DbConnection dbConnection = new DbConnection();
         int challengeId = Integer.parseInt((String) new JSONArray(obj.get("tokens").toString()).get(1));
         ResultSet challengeQuestions;
-        ResultSet rs = dbConnection.read("SELECT challenge_name, start_date FROM `challenges` WHERE id = " + challengeId + " AND `start_date` <= CURRENT_DATE AND `closing_date` >= CURRENT_DATE;");
+
+        ResultSet rs = dbConnection.read("SELECT challenge_name, time_allocation, start_date FROM `challenges` WHERE id = " + challengeId + " AND `start_date` <= CURRENT_DATE AND `closing_date` >= CURRENT_DATE;");
         String challengeName;
+        int challengeDuration;
         if (rs.next()) {
             challengeName = rs.getString("challenge_name");
+            challengeDuration = rs.getInt("time_allocation");
         } else {
             JSONObject altResponse = new JSONObject();
+
             altResponse.put("command", "attemptChallenge");
             altResponse.put("status", false);
             altResponse.put("reason", "[-] The requested challenge is currently not open or has expired");
@@ -134,6 +138,7 @@ public class Controller {
         clientResponse.put("challenge_id", challengeId);
         clientResponse.put("status", true);
         clientResponse.put("challenge_name", challengeName);
+        clientResponse.put("time_allocation", challengeDuration);
         return clientResponse;
     }
 
@@ -228,7 +233,6 @@ public class Controller {
     public JSONObject attempt(JSONObject obj) throws SQLException, ClassNotFoundException {
         JSONArray attempt = obj.getJSONArray("attempt");
         DbConnection dbConnection = new DbConnection();
-
         JSONObject attemptEvaluation = new JSONObject();
         attemptEvaluation.put("score", dbConnection.getAttemptScore(obj.getInt("challenge_id"), attempt, obj.getInt("participant_id")));
         attemptEvaluation.put("participant_id", obj.getInt("participant_id"));

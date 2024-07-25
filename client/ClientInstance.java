@@ -3,10 +3,14 @@ package client;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.time.LocalTime;
+import java.time.Duration;
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 import java.util.regex.Pattern;
+
+import static java.time.LocalDateTime.*;
 
 public class ClientInstance {
     // define attributes for the ClientInstance object
@@ -32,25 +36,49 @@ public class ClientInstance {
     }
 
     public JSONArray displayQuestionSet(JSONObject challengeObj) {
-        System.out.println("CHALLENGE " + challengeObj.getInt("challenge_id") + " (" + challengeObj.get("challenge_name") + ")");
+        System.out.println("====================================");
+        System.out.println("       " + challengeObj.getString("challenge_name"));
+        System.out.println("====================================");
+        System.out.println("Challenge ID          : " + challengeObj.getInt("challenge_id"));
+        System.out.println("Time allocation (mins): " + challengeObj.getInt("time_allocation"));
+        System.out.println("====================================\n");
+
         Scanner scanner = new Scanner(System.in);
         JSONArray questions = challengeObj.getJSONArray("questions");
         JSONArray solutions = new JSONArray();
         this.cache = 0;
         int count = 1;
+        int timeAllocation = challengeObj.getInt("time_allocation");
+        LocalTime startingTime = LocalTime.now();
+        LocalTime closingTime = startingTime.plusMinutes(timeAllocation);
+
         for (int i = 0; i < questions.length(); i++) {
             JSONObject question = questions.getJSONObject(i);
             JSONObject answer = new JSONObject();
             this.cache += (byte) question.getInt("score");
-            System.out.println(count + ". " + question.get("question") + " (" + question.get("score") + " Marks)");
+
+
+            Duration remainingTime = Duration.between(startingTime, LocalTime.now());
+            System.out.println("done: " + solutions.length() + "/10             time-left: " + ((timeAllocation - 1) - remainingTime.toMinutes()) + " minutes " + (60 - (remainingTime.toSeconds() % 60)) + " seconds");
+            System.out.println("question: " + question.getString("question") + " (" + question.getInt("score") + " Marks)");
+            System.out.print("answer  : ");
+
             answer.put("question_id", question.getInt("id"));
-            System.out.print(" - ");
             answer.put("answer", scanner.nextLine());
+            System.out.println("-----------------------------------------------------\n");
+
+
+            if (closingTime.isBefore(LocalTime.now())) {
+                return solutions;
+            }
+
             solutions.put(answer);
             count++;
             System.out.print("\n");
         }
+
         return solutions;
+
     }
 
     public void start() throws IOException {
@@ -97,17 +125,11 @@ public class ClientInstance {
                         obj.put("command", "attempt");
                         obj.put("challenge_id", questions.getInt("challenge_id"));
                         obj.put("total_score", this.cache);
-
                         String inp = obj.toString();
-
                         output.println(inp);
-
                         response = input.readLine();
-
                         this.user = clientController.exec(response);
-
                         System.out.println("\n" + user.output + "\n");
-
                     }
                 } else {
                     System.out.println(serializedCommand);
@@ -123,12 +145,25 @@ public class ClientInstance {
     }
 
     private void printMenu() {
-        System.out.println("MATH CHALLENGE MENU");
-        System.out.println("\nUse the menu below to guide you as you use this client\n");
-        System.out.println("Register username firstname lastname emailAddress date_of_birth school_registration_number path_to_image :\n");
-        System.out.println("viewChallenges");
-        System.out.println("attemptChallenge <challenge_id>");
-        System.out.println("viewApplicants");
-        System.out.println("confirm <yes/no> <applicant_username>\n\n\n");
+        System.out.println("===================================");
+        System.out.println("        MATH CHALLENGE MENU        ");
+        System.out.println("===================================");
+        System.out.println("\nWelcome to the MATH CHALLENGE CLI. Use the menu below to guide you as you use this client\n");
+
+        System.out.println("1. Register [to register as a participant in the different challenges]:");
+        System.out.println("   register <username> <firstname> <lastname> <email> <date_of_birth> <school_registration_number> <path_to_image>");
+        System.out.println("\n2. View Challenges [to view the different open challenges in the system]:");
+        System.out.println("   viewChallenges");
+        System.out.println("\n3. Attempt Challenge [to attempt a particular open challenge]:");
+        System.out.println("   attemptChallenge <challenge_id>");
+        System.out.println("\n4. View Applicants [for representatives to view registering participants]:");
+        System.out.println("   viewApplicants");
+        System.out.println("\n5. Confirm Applicant [for representatives to confirm participant registration]:");
+        System.out.println("   confirm <yes/no> <applicant_username>");
+        System.out.println("\n6. Log in [to login as participant or as a representative]:");
+        System.out.println("   login");
+        System.out.println("\n7. Log out [to logout as participant or as a representative]:");
+        System.out.println("   logout");
+        System.out.println("\n===================================\n");
     }
 }
