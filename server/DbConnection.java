@@ -41,7 +41,7 @@ public class DbConnection {
     }
 
     public void createParticipant(String username, String firstname, String lastname, String emailAddress, String dob, String regNo, String imagePath) throws SQLException {
-        String sql = "INSERT INTO `participant` (`username`, `firstname`, `lastname`, `emailAddress`, `dob`, `regNo`, `imagePath`) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO `participants` (`username`, `firstname`, `lastname`, `email_address`, `dob`, `registration_number`, `image_path`) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = this.connection.prepareStatement(sql)) {
             stmt.setString(1, username);
             stmt.setString(2, firstname);
@@ -54,8 +54,8 @@ public class DbConnection {
         }
     }
 
-    public void createParticipantRejected(String username, String firstname, String lastname, String emailAddress, String dob, String regNo, String imagePath) throws SQLException {
-        String sql = "INSERT INTO `rejectedparticipant` (`username`, `firstname`, `lastname`, `emailAddress`, `dob`, `regNo`, `imagePath`) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    public void createParticipantRejected(String username, String firstname, String lastname, String emailAddress, String dob, String regNo) throws SQLException {
+        String sql = "INSERT INTO `rejected_participants` (`username`, `firstname`, `lastname`, `email_address`, `dob`, `registration_number`) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = this.connection.prepareStatement(sql)) {
             stmt.setString(1, username);
             stmt.setString(2, firstname);
@@ -63,44 +63,51 @@ public class DbConnection {
             stmt.setString(4, emailAddress);
             stmt.setString(5, dob);
             stmt.setString(6, regNo);
-            stmt.setString(7, imagePath);
             stmt.executeUpdate();
         }
     }
 
     public ResultSet getChallenges() throws SQLException {
-        String sql = "SELECT * FROM `mtchallenge`.`challenge` WHERE `starting_date` <= CURRENT_DATE AND `closing_date` >= CURRENT_DATE;";
+        String sql = "SELECT * FROM `mtchallenge`.`challenges` WHERE `start_date` <= CURRENT_DATE AND `closing_date` >= CURRENT_DATE;";
         return this.statement.executeQuery(sql);
     }
 
     public ResultSet getChallengeQuestions(int challenge_id) throws SQLException {
-        String sql = "SELECT qar.* FROM `mtchallenge`.`question_answer_record` qar JOIN `mtchallenge`.`challenge_question_answer_record` cqar ON qar.question_id = cqar.question_id WHERE cqar.challenge_id = ?";
+        String sql = "SELECT qa.* FROM `question_answers` qa JOIN `mtchallenge`.`challenge_question_answers` cqa ON qa.id = cqa.question WHERE cqa.challenge = ?";
         PreparedStatement preparedStatement = this.connection.prepareStatement(sql);
         preparedStatement.setInt(1, challenge_id);
         return preparedStatement.executeQuery();
     }
 
-    public int getAttemptScore(JSONArray attempt) throws SQLException {
+    public int getAttemptScore(JSONArray attempt, int participant) throws SQLException {
         int score = 0;
         for (int i = 0; i < attempt.length(); i++) {
             JSONObject obj = attempt.getJSONObject(i);
+
+
             if (obj.get("answer").equals("-")) {
                 score += 0;
+                this.addAttempt(participant, obj.getInt("question_id"), false);
                 continue;
             }
-            String sql = "SELECT `score` FROM `question_answer_record` WHERE `question_id` = " + obj.getInt("question_id") + " AND `answer` = " + obj.get("answer") + ";";
+
+            String sql = "SELECT `score` FROM `question_answers` WHERE `id` = " + obj.getInt("question_id") + " AND `answer` = " + obj.get("answer") + ";";
             ResultSet questionScore = this.statement.executeQuery(sql);
+
             if (questionScore.next()) {
                 score += questionScore.getInt("score");
+                this.addAttempt(participant, obj.getInt("question_id"), true);
             } else {
                 score -= 3;
+                this.addAttempt(participant, obj.getInt("question_id"), false);
             }
+
         }
         return score;
     }
 
     public void createChallengeAttempt(JSONObject obj) throws SQLException {
-        String sql = "INSERT INTO `participant_challenge_attempt` (`participant_id`, `challenge_id`, `score`, `total`) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO `participant_challenges` (`participant`, `challenge`, `score`, `total`) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = this.connection.prepareStatement(sql)) {
             ps.setInt(1, obj.getInt("participant_id"));
             ps.setInt(2, obj.getInt("challenge_id"));
@@ -112,8 +119,18 @@ public class DbConnection {
     }
 
     public ResultSet getRepresentative(String regNo) throws SQLException {
-        String sqlCommand = "SELECT * FROM `school` WHERE regNo = " + regNo + ";";
+        String sqlCommand = "SELECT * FROM `schools` WHERE registration_number = " + regNo + ";";
         return this.statement.executeQuery(sqlCommand);
+    }
+
+    public ResultSet getSchool(String regNo) throws SQLException {
+        String sqlCommand = "SELECT name FROM `schools` WHERE registration_number = " + regNo + ";";
+        return this.statement.executeQuery(sqlCommand);
+    }
+
+    public void addAttempt(int participant, int question, boolean status) throws SQLException {
+        String sqlCommand = "INSERT INTO `attempts` (`status`, `question`, `participant`) VALUES (" + (status ? "'correct'" : "'wrong'") + ", " + question + ", " + participant + ");";
+        this.statement.execute(sqlCommand);
     }
 
 }

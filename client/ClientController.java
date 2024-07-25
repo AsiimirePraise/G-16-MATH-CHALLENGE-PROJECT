@@ -16,9 +16,15 @@ public class ClientController {
             this.user.id = response.getInt("participant_id");
             this.user.username = response.getString("username");
             this.user.email = response.getString("email");
-            this.user.regNo = response.getString("regNo");
+            this.user.regNo = response.getString("registration_number");
             this.user.schoolName = response.getString("schoolName");
             this.user.isStudent = response.getBoolean("isStudent");
+            if (response.getBoolean("isStudent")) {
+                System.out.println("Thank you for logging in\n");
+                System.out.println("follow the following commands to navigate");
+                System.out.println("viewChallenges                 : to view challenges");
+                System.out.println("AttemptChallenge <challenge-id>: to view challenges");
+            }
             this.user.isAuthenticated = response.getBoolean("isAuthenticated");
             this.user.output = "[+] Successfully logged in as a " + this.user.username + (this.user.isStudent ? "(student)" : "(representative)");
         } else {
@@ -96,9 +102,10 @@ public class ClientController {
         int count = 1;
         for (int i = 0; i < participants.length(); i++) {
             JSONObject participant = new JSONObject(((JSONObject) participants.get(i)).toString(4));
-            stringBuilder.append(count + ". " + participant.getString("firstname") + " " + participant.getString("lastname") + " " + participant.getString("emailAddress") + "\n");
+            stringBuilder.append(count + ". " + participant.getString("username") + " " + participant.getString("email_address") + "\n");
             count++;
         }
+
         stringBuilder.append("\n");
         stringBuilder.append("Confirm a student using the commands\n");
         stringBuilder.append(" - confirm yes <username>\n");

@@ -48,7 +48,6 @@ public class Serializer {
         JSONObject obj = new JSONObject();
         obj.put("command", "attemptChallenge");
         obj.put("tokens", tokens);
-
         return obj.toString(4);
     }
 
@@ -57,7 +56,9 @@ public class Serializer {
         obj.put("command", "viewApplicants");
         obj.put("isAuthenticated", this.user.isAuthenticated);
         obj.put("isStudent", this.user.isStudent);
-        obj.put("regNo", this.user.regNo);
+        obj.put("registration_number", this.user.regNo);
+
+
         return obj.toString(4);
     }
 
@@ -65,9 +66,10 @@ public class Serializer {
         JSONObject obj = new JSONObject();
         obj.put("command", "confirm");
         obj.put("username", arr[2]);
-        obj.put("regNo", this.user.regNo);
+        obj.put("registration_number", this.user.regNo);
         obj.put("confirm", (arr[1].toLowerCase().equals("yes")) ? true : false);
         obj.put("tokens", arr);
+
         return obj.toString(4);
     }
 
@@ -118,10 +120,6 @@ public class Serializer {
                     return "Invalid school representative command";
             }
         }
-    }
 
-    public static void main(String[] args) {
-        Serializer sample = new Serializer(new User());
-        sample.serialize("login frank ogenrwothjimfrank@gmail.com");
     }
 }
