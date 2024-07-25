@@ -36,7 +36,6 @@ public class ClientInstance {
     public static JSONObject displayQuestionSet(JSONObject challengeObj) {
         System.out.println("CHALLENGE " + challengeObj.getInt("challenge_id") + " (" + challengeObj.get("challenge_name") + ")");
         Scanner scanner = new Scanner(System.in);
-
         JSONArray questions = challengeObj.getJSONArray("questions");
         for (int i = 0; i < questions.length(); i++) {
             JSONObject question = questions.getJSONObject(i);
@@ -49,7 +48,6 @@ public class ClientInstance {
 
     public void start() throws IOException {
         // Todo: create a parent menu
-
         // execute code for interacting with the server
         try (
                 Socket socket = new Socket(hostname, port);
@@ -61,32 +59,32 @@ public class ClientInstance {
             Serializer serializer = new Serializer(this.user);
             System.out.print("[" + this.clientId + "] (" + this.user.username + ") -> ");
             // read command line input
-
             // Continuously read from the console and send to the server
             ClientController clientController = new ClientController(user);
             String regex = "^\\{.*\\}$";
             Pattern pattern = Pattern.compile(regex);
-
-
             String userInput;
             while ((userInput = consoleInput.readLine()) != null) {
                 // send command to the server
+                if (userInput.equals("logout")) {
+                    System.out.println("Session successfully logged out");
+                    this.user.logout();
+                    System.out.print("[" + this.clientId + "] (" + (!this.user.username.isBlank() ? this.user.username : null) + ") -> ");
+                    continue;
+                }
+
                 String serializedCommand = serializer.serialize(userInput);
                 if (isValid(serializedCommand)) {
                     output.println(serializedCommand);
                     // read response here from the server
                     String response = input.readLine();
-
                     this.user = clientController.exec(response);
-
                     if (!pattern.matcher(this.user.output).matches()) {
                         System.out.println("\n" + user.output + "\n");
                     } else {
                         JSONObject questions = new JSONObject(this.user.output);
                         JSONObject answerSet = displayQuestionSet(questions);
                     }
-
-
                 } else {
                     System.out.println(serializedCommand);
                 }
