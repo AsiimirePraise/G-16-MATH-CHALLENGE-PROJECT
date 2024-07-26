@@ -58,11 +58,18 @@ public class ClientController {
             this.user.output = response.getString("reason");
             return this.user;
         }
+
+        // put all questions from the server in an array
         JSONArray allQuestions = response.getJSONArray("questions");
+
+
         if (allQuestions.isEmpty()) {
+            // if there are no questions just print no questions
             this.user.output = "[-] No available questions in this challenge right now";
             return this.user;
         }
+
+        // return my output to the client instance
         this.user.output = response.toString();
         return this.user;
     }

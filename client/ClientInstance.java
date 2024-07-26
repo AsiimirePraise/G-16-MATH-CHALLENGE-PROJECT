@@ -36,41 +36,68 @@ public class ClientInstance {
     }
 
     public JSONArray displayQuestionSet(JSONObject challengeObj) {
+        // display the name of the challenge and the time
         System.out.println("====================================");
         System.out.println("       " + challengeObj.getString("challenge_name"));
         System.out.println("====================================");
         System.out.println("Challenge ID          : " + challengeObj.getInt("challenge_id"));
         System.out.println("Time allocation (mins): " + challengeObj.getInt("time_allocation"));
         System.out.println("====================================\n");
+
+        // start a scanner obj
         Scanner scanner = new Scanner(System.in);
+
+        // pick the questions from the challenge object from the response
         JSONArray questions = challengeObj.getJSONArray("questions");
+
+        // create an array for collecting answers
         JSONArray solutions = new JSONArray();
         this.cache = 0;
         int count = 1;
+
+        // meta data for tracking time
         int timeAllocation = challengeObj.getInt("time_allocation");
         LocalTime startingTime = LocalTime.now();
         LocalTime closingTime = startingTime.plusMinutes(timeAllocation);
         LocalTime lastTime = startingTime;
+
         for (int i = 0; i < questions.length(); i++) {
+            // retrieve a particular question
             JSONObject question = questions.getJSONObject(i);
+
+            // create a json object for picking answers
             JSONObject answer = new JSONObject();
+
+            // add my score to the temporary storage - cache
             this.cache += (byte) question.getInt("score");
+
+            // print out question
             Duration remainingTime = Duration.between(startingTime, LocalTime.now());
             System.out.println("done: " + solutions.length() + "/10             time-left: " + ((timeAllocation - 1) - remainingTime.toMinutes()) + " minutes " + (60 - (remainingTime.toSeconds() % 60)) + " seconds");
             System.out.println("question: " + question.getString("question") + " (" + question.getInt("score") + " Marks)");
             System.out.print("answer  : ");
+
+            // append the answers to the solutions array
             answer.put("question_id", question.getInt("id"));
             answer.put("answer", scanner.nextLine());
             answer.put("time", (int) Duration.between(lastTime, LocalTime.now()).getSeconds());
+
             lastTime = LocalTime.now();
             System.out.println("-----------------------------------------------------\n");
             if (closingTime.isBefore(LocalTime.now())) {
+                // stop attempting if the duration of attempt is closed
                 return solutions;
             }
+
+            // add answer json object to the solutions array
             solutions.put(answer);
             count++;
+
+
             System.out.print("\n");
         }
+
+        // return solutions - questions & answers
         return solutions;
     }
 
@@ -85,12 +112,14 @@ public class ClientInstance {
         ) {
             this.clientId = socket.getInetAddress().getHostAddress();
             Serializer serializer = new Serializer(this.user);
+            ClientController clientController = new ClientController(user);
 
             printMenu();
+
             System.out.print("[" + this.clientId + "] (" + this.user.username + ") -> ");
             // read command line input
             // Continuously read from the console and send to the server
-            ClientController clientController = new ClientController(user);
+
             String regex = "^\\{.*\\}$";
             Pattern pattern = Pattern.compile(regex);
             String userInput;
@@ -102,17 +131,34 @@ public class ClientInstance {
                     System.out.print("[" + this.clientId + "] (" + (!this.user.username.isBlank() ? this.user.username : null) + ") -> ");
                     continue;
                 }
+
+                // convert command into a json string
                 String serializedCommand = serializer.serialize(userInput);
+
                 if (isValid(serializedCommand)) {
+                    // send the json object to the server
                     output.println(serializedCommand);
+
                     // read response here from the server
                     String response = input.readLine();
+
+                    // interpret response with client controller - logic for interpreting client response
                     this.user = clientController.exec(response);
+
+                    //
                     if (!pattern.matcher(this.user.output).matches()) {
+                        // print response if it's a plain string like if its login
                         System.out.println("\n" + user.output + "\n");
                     } else {
+                        // handle for example collecting answers to questions
+
+                        //create my json object for holding the solutions
                         JSONObject questions = new JSONObject(this.user.output);
+
+                        // collect answers using the display question set function
                         JSONArray answerSet = displayQuestionSet(questions);
+
+                        // create data to send to the server
                         JSONObject obj = new JSONObject();
                         obj.put("attempt", answerSet);
                         obj.put("participant_id", this.user.id);
@@ -123,9 +169,15 @@ public class ClientInstance {
 
                         String inp = obj.toString();
 
+                        // send that data to the server
                         output.println(inp);
+
+                        // read server response
                         response = input.readLine();
+
+                        // inteprete server response in the client controller
                         this.user = clientController.exec(response);
+
                         System.out.println("\n" + user.output + "\n");
                     }
                 } else {

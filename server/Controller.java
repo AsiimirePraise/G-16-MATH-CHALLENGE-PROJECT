@@ -198,8 +198,10 @@ public class Controller {
     private JSONObject confirm(JSONObject obj) throws IOException, SQLException, ClassNotFoundException, MessagingException {
         // logic to confirm registered students (representatives, isAuthenticated)
         LocalStorage localStorage = new LocalStorage("participants.json");
+
         String username = obj.getString("username");
         JSONObject participant = localStorage.readEntryByUserName(username);
+
         JSONObject clientResponse = new JSONObject();
         clientResponse.put("command", "confirm");
         if (participant.isEmpty()) {
@@ -249,7 +251,7 @@ public class Controller {
     }
 
     private static void saveProfileImage(JSONObject s, String pic_path) {
-        try (FileOutputStream fileOutputStream = new FileOutputStream("C:\\Users\\ogenr\\Documents\\lar\\web\\public\\assets\\participants\\" + pic_path)) {
+        try (FileOutputStream fileOutputStream = new FileOutputStream("C:\\Users\\ogenr\\Documents\\G-16-MATH-CHALLENGE-PROJECT\\web\\public\\assets\\participants\\" + pic_path)) {
             JSONArray arr = s.getJSONArray("data");
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject o = arr.getJSONObject(i);

@@ -18,9 +18,9 @@ import java.util.Properties;
 
 public class Email {
     String host = "smtp.gmail.com";
-    String username = "eelection3.portal@gmail.com";
-    String from = "eelection3.portal@gmail.com";
-    String password = "mngv mtyl wmzk exmi";
+    String username = "mathchallengesystem@gmail.com";
+    String from = "mathchallengesystem@gmail.com";
+    String password = "aibj jdgj fvpl cfwb";
     Session session;
 
     public Email() {
