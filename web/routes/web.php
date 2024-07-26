@@ -23,6 +23,11 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SessionsController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\ChallengeController;
+use App\Http\Controllers\HomeController;
+
+// home page routes
+Route::get('', [HomeController::class, 'home'])->name('homepage');
+
 
 // school routes
 Route::get('/schools/create', [SchoolController::class, 'create'])->name('schools.create');
@@ -48,7 +53,7 @@ Route::get('challenges/{challenge}/upload-question-answers', [ChallengeControlle
 Route::post('challenges/{challenge}/upload-question-answers', [ChallengeController::class, 'add']);
             
 
-Route::get('/', function () {return redirect('sign-in');})->middleware('guest');
+// Route::get('/', function () {return redirect('sign-in');})->middleware('guest');
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
 Route::get('sign-up', [RegisterController::class, 'create'])->middleware('guest')->name('register');
 Route::post('sign-up', [RegisterController::class, 'store'])->middleware('guest');
