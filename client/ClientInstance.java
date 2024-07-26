@@ -54,6 +54,7 @@ public class ClientInstance {
         JSONArray solutions = new JSONArray();
         this.cache = 0;
         int count = 1;
+        int numberOfQuestions = questions.length();
 
         // meta data for tracking time
         int timeAllocation = challengeObj.getInt("time_allocation");
@@ -73,7 +74,7 @@ public class ClientInstance {
 
             // print out question
             Duration remainingTime = Duration.between(startingTime, LocalTime.now());
-            System.out.println("done: " + solutions.length() + "/10             time-left: " + ((timeAllocation - 1) - remainingTime.toMinutes()) + " minutes " + (60 - (remainingTime.toSeconds() % 60)) + " seconds");
+            System.out.println("done: " + solutions.length() + "/" + numberOfQuestions + "             time-left: " + ((timeAllocation - 1) - remainingTime.toMinutes()) + " minutes " + (60 - (remainingTime.toSeconds() % 60)) + " seconds");
             System.out.println("question: " + question.getString("question") + " (" + question.getInt("score") + " Marks)");
             System.out.print("answer  : ");
 

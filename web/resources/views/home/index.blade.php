@@ -24,7 +24,12 @@
             </a>
             <div class="collapse navbar-collapse d-flex align-items-center" id="navcol-1">
                 <ul class="navbar-nav mx-auto">
-                </ul><span class="" role="button" href="signup.html">Are you an admin? <a href="{{ route('login') }}">Login</a></span>
+                </ul><span class="" role="button" href="signup.html">Are you an admin? <a href="
+                @if (Auth::check()) {{ route('dashboard') }}
+@else
+    {{ route('login') }}
+@endif">Login</a></span>
+
 
             </div>
         </div>
